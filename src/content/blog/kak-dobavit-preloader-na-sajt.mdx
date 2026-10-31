@@ -1,0 +1,571 @@
+---
+title: "Как добавить прелоадер на сайт: пошаговая инструкция"
+description: "Разбираю, как сделать прелоадер на HTML, CSS и JavaScript: простая анимация, скрытие после загрузки, доступность и готовый код с примерами."
+pubDate: 2026-11-03
+cover: "/images/blog/kak-dobavit-preloader-na-sajt-cover.jpg"
+coverAlt: "Прелоадер на сайте — анимированный спиннер перед загрузкой"
+tags: ["html-css", "features", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Прелоадер** — это анимированный экран, который показывается, **пока сайт загружается**. Пользователь видит **красивую анимацию** вместо белого экрана или «прыгающего» контента.
+
+Правильный прелоадер **улучшает восприятие скорости** — сайт кажется быстрее, даже если грузится столько же. Плюс — **скрывает FOUC** (мигание неоформленного контента).
+
+В этой статье — **пошаговая инструкция** по созданию прелоадера на **чистом HTML, CSS и JavaScript**. С **живыми демо** и разбором **каждой строки кода**.
+
+## Что вы узнаете
+
+- [Что такое прелоадер и зачем он нужен](#что-такое-прелоадер)
+- [Шаг 1. HTML-разметка](#шаг-1-разметка)
+- [Шаг 2. CSS-стили и анимация](#шаг-2-css)
+- [Шаг 3. JavaScript — скрытие прелоадера](#шаг-3-javascript)
+- [Готовый код целиком](#готовый-код)
+- [Доступность и SEO](#доступность)
+- [Частые ошибки](#частые-ошибки)
+
+## Что такое прелоадер
+
+**Прелоадер** — это **элемент страницы**, который **показывается первым** и **исчезает**, когда сайт полностью загрузился.
+
+**Какие бывают:**
+
+- **Спиннер** — крутящийся индикатор (как в примере ниже)
+- **Прогресс-бар** — полоса заполнения
+- **Логотип с анимацией** — брендированный
+- **Скелетон** — серые блоки на месте будущего контента
+
+**Зачем нужен:**
+
+- **Восприятие скорости** — сайт кажется быстрее
+- **Скрывает FOUC** — не видно «прыжков» контента при загрузке
+- **Брендирование** — можно показать логотип
+- **Развлечение** — пока грузится, пользователь смотрит на анимацию
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Прелоадер <strong>не ускоряет сайт</strong>. Он только <strong>маскирует</strong> время загрузки. Если сайт грузится 10 секунд — прелоадер будет висеть 10 секунд. Сначала оптимизируйте скорость.</p>
+</div>
+
+## Шаг 1. HTML-разметка
+
+Прелоадер — это **обычный `<div>`**, который **стоит первым в `<body>`**. Внутри — **анимация** (спиннер, логотип, полоска).
+
+**Пример — кубический спиннер:**
+
+```html
+<div class="preloader" id="preloader">
+  <div class="spinner">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+</div>
+```
+
+**Что важно:**
+
+- **`class="preloader"`** — для стилизации
+- **`id="preloader"`** — для JavaScript (быстрый доступ)
+- **6 `<div>` внутри `.spinner`** — это **грани куба**, которые вращаются
+
+**Куда вставлять:** **сразу после `<body>`**, до всего остального контента.
+
+```html
+<body>
+  <div class="preloader" id="preloader">...</div>
+
+  <!-- Остальной контент сайта -->
+  <header>...</header>
+  <main>...</main>
+</body>
+```
+
+## Шаг 2. CSS-стили и анимация
+
+### Стили прелоадера
+
+**Прелоадер должен:**
+
+- **Закрывать весь экран** — `position: fixed; inset: 0`
+- **Быть поверх всего** — `z-index: 9999`
+- **Центрировать спиннер** — `display: flex`
+
+```css
+.preloader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F5F3;
+  z-index: 9999;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+/* Класс для скрытия прелоадера */
+.preloader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+```
+
+**Разберём:**
+
+- **`position: fixed`** — прелоадер **не скроллится** вместе со страницей
+- **`inset: 0`** — растягивается на **весь экран** (это сокращение для `top/right/bottom/left: 0`)
+- **`display: flex` + `align-items` + `justify-content`** — **центрирование спиннера**
+- **`background: #F5F5F3`** — фон прелоадера (замените на цвет вашего сайта)
+- **`z-index: 9999`** — **поверх всего** контента
+- **`transition`** — плавное исчезновение при скрытии
+
+### Стили спиннера
+
+**Кубический спиннер** — это **6 граней**, которые **вращаются в 3D-пространстве**.
+
+```css
+.spinner {
+  width: 70px;
+  height: 70px;
+  --clr: #F36223;
+  --clr-alpha: rgba(243, 98, 35, 0.1);
+  animation: spinner-rotate 1.6s infinite ease;
+  transform-style: preserve-3d;
+}
+
+.spinner > div {
+  background-color: var(--clr-alpha);
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  border: 3.5px solid var(--clr);
+}
+```
+
+**Разберём:**
+
+- **`--clr` и `--clr-alpha`** — CSS-переменные для **цвета граней** и **прозрачного фона**. Замените на свой акцентный цвет
+- **`animation: spinner-rotate 1.6s infinite ease`** — **бесконечная** анимация вращения
+- **`transform-style: preserve-3d`** — **ключевое свойство**. Говорит браузеру: «дочерние элементы **живут в 3D-пространстве**». Без него **грани сплющатся** в плоскость
+- **`position: absolute`** на гранях — все 6 граней **накладываются** друг на друга, а потом каждая **поворачивается** на своё место
+
+### Позиционирование граней
+
+**Каждая из 6 граней** должна **повернуться** в своё положение — как у **куба**.
+
+```css
+/* Задняя грань */
+.spinner div:nth-of-type(1) {
+  transform: translateZ(-35px) rotateY(180deg);
+}
+
+/* Правая грань */
+.spinner div:nth-of-type(2) {
+  transform: rotateY(-270deg) translateX(50%);
+  transform-origin: top right;
+}
+
+/* Левая грань */
+.spinner div:nth-of-type(3) {
+  transform: rotateY(270deg) translateX(-50%);
+  transform-origin: center left;
+}
+
+/* Верхняя грань */
+.spinner div:nth-of-type(4) {
+  transform: rotateX(90deg) translateY(-50%);
+  transform-origin: top center;
+}
+
+/* Нижняя грань */
+.spinner div:nth-of-type(5) {
+  transform: rotateX(-90deg) translateY(50%);
+  transform-origin: bottom center;
+}
+
+/* Передняя грань */
+.spinner div:nth-of-type(6) {
+  transform: translateZ(35px);
+}
+```
+
+**Что здесь:**
+
+- **`translateZ(±35px)`** — сдвиг **вперёд или назад** по оси Z. Радиус куба = **половина стороны**. Сторона 70px → сдвиг 35px
+- **`rotateY(±90deg)`** — поворот вокруг **вертикальной оси**. Для правой и левой граней
+- **`rotateX(±90deg)`** — поворот вокруг **горизонтальной оси**. Для верхней и нижней
+- **`transform-origin`** — **точка вращения**. У правой грани — `top right` (верхний правый угол). Это **правильное позиционирование**
+
+### Анимация вращения
+
+```css
+@keyframes spinner-rotate {
+  0% {
+    transform: rotate(45deg) rotateX(-25deg) rotateY(25deg);
+  }
+  50% {
+    transform: rotate(45deg) rotateX(-385deg) rotateY(25deg);
+  }
+  100% {
+    transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
+  }
+}
+```
+
+**Что происходит:**
+
+- **`0%`** — стартовое положение. Куб **наклонён** под углом 25° по двум осям
+- **`50%`** — куб **повернулся** на 360° по оси X
+- **`100%`** — куб **повернулся** ещё на 360° по оси Y
+
+**Визуально:** куб **крутится** в двух направлениях — красиво и заметно.
+
+### Живое демо
+
+**Вот как выглядит этот спиннер:**
+
+<LiveDemo
+  title="Кубический спиннер"
+  height={280}
+  html={`
+    <div class="spinner">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      background: #F5F5F3;
+    }
+
+    .spinner {
+      width: 70.4px;
+      height: 70.4px;
+      --clr: #F36223;
+      --clr-alpha: rgba(243, 98, 35, 0.1);
+      animation: spinner-rotate 1.6s infinite ease;
+      transform-style: preserve-3d;
+    }
+
+    .spinner > div {
+      background-color: var(--clr-alpha);
+      height: 100%;
+      position: absolute;
+      width: 100%;
+      border: 3.5px solid var(--clr);
+    }
+
+    .spinner div:nth-of-type(1) { transform: translateZ(-35.2px) rotateY(180deg); }
+    .spinner div:nth-of-type(2) {
+      transform: rotateY(-270deg) translateX(50%);
+      transform-origin: top right;
+    }
+    .spinner div:nth-of-type(3) {
+      transform: rotateY(270deg) translateX(-50%);
+      transform-origin: center left;
+    }
+    .spinner div:nth-of-type(4) {
+      transform: rotateX(90deg) translateY(-50%);
+      transform-origin: top center;
+    }
+    .spinner div:nth-of-type(5) {
+      transform: rotateX(-90deg) translateY(50%);
+      transform-origin: bottom center;
+    }
+    .spinner div:nth-of-type(6) { transform: translateZ(35.2px); }
+
+    @keyframes spinner-rotate {
+      0% { transform: rotate(45deg) rotateX(-25deg) rotateY(25deg); }
+      50% { transform: rotate(45deg) rotateX(-385deg) rotateY(25deg); }
+      100% { transform: rotate(45deg) rotateX(-385deg) rotateY(385deg); }
+    }
+  `}
+/>
+
+## Шаг 3. JavaScript — скрытие прелоадера
+
+**Прелоадер должен исчезнуть**, когда страница **полностью загрузилась**. Для этого используем **событие `window.onload`** — оно срабатывает, когда **все ресурсы загружены** (картинки, шрифты, скрипты).
+
+**Минимальный код:**
+
+```html
+<script>
+  window.addEventListener('load', function() {
+    var preloader = document.getElementById('preloader');
+    if (preloader) {
+      preloader.classList.add('is-hidden');
+    }
+  });
+</script>
+```
+
+**Что происходит:**
+
+1. Ждём **полной загрузки страницы**
+2. Находим прелоадер по `id`
+3. Добавляем класс **`is-hidden`** — он плавно скрывает через `transition` в CSS
+
+**Страховка от «зависшего» прелоадера:**
+
+Если какой-то ресурс **не загрузится**, `window.onload` **может не сработать**. Тогда прелоадер **останется навсегда** — это плохо.
+
+**Решение:** добавить **таймаут** — максимум 5 секунд:
+
+```html
+<script>
+  (function() {
+    var preloader = document.getElementById('preloader');
+    if (!preloader) return;
+
+    var hidden = false;
+
+    function hidePreloader() {
+      if (hidden) return;
+      hidden = true;
+      preloader.classList.add('is-hidden');
+    }
+
+    // Скрываем после полной загрузки
+    window.addEventListener('load', hidePreloader);
+
+    // Страховка — максимум 5 секунд
+    setTimeout(hidePreloader, 5000);
+  })();
+</script>
+```
+
+**Что это даёт:**
+
+- **Основной сценарий** — прелоадер скрывается после загрузки
+- **Страховка** — если через 5 секунд всё ещё не загрузилось, скрываем принудительно
+- **`hidden` флаг** — защита от двойного скрытия
+
+## Готовый код
+
+**Соберём всё вместе. Вставьте в `<body>` в самом начале:**
+
+```html
+<!-- Прелоадер -->
+<div class="preloader" id="preloader">
+  <div class="spinner">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+</div>
+
+<!-- Остальной контент сайта -->
+```
+
+**В `<head>` — стили:**
+
+```html
+<style>
+  .preloader {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F5F5F3;
+    z-index: 9999;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+
+  .preloader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .spinner {
+    width: 70px;
+    height: 70px;
+    --clr: #F36223;
+    --clr-alpha: rgba(243, 98, 35, 0.1);
+    animation: spinner-rotate 1.6s infinite ease;
+    transform-style: preserve-3d;
+  }
+
+  .spinner > div {
+    background-color: var(--clr-alpha);
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    border: 3.5px solid var(--clr);
+  }
+
+  .spinner div:nth-of-type(1) { transform: translateZ(-35px) rotateY(180deg); }
+  .spinner div:nth-of-type(2) {
+    transform: rotateY(-270deg) translateX(50%);
+    transform-origin: top right;
+  }
+  .spinner div:nth-of-type(3) {
+    transform: rotateY(270deg) translateX(-50%);
+    transform-origin: center left;
+  }
+  .spinner div:nth-of-type(4) {
+    transform: rotateX(90deg) translateY(-50%);
+    transform-origin: top center;
+  }
+  .spinner div:nth-of-type(5) {
+    transform: rotateX(-90deg) translateY(50%);
+    transform-origin: bottom center;
+  }
+  .spinner div:nth-of-type(6) { transform: translateZ(35px); }
+
+  @keyframes spinner-rotate {
+    0% { transform: rotate(45deg) rotateX(-25deg) rotateY(25deg); }
+    50% { transform: rotate(45deg) rotateX(-385deg) rotateY(25deg); }
+    100% { transform: rotate(45deg) rotateX(-385deg) rotateY(385deg); }
+  }
+</style>
+```
+
+**В конец `<body>` — скрипт:**
+
+```html
+<script>
+  (function() {
+    var preloader = document.getElementById('preloader');
+    if (!preloader) return;
+
+    var hidden = false;
+
+    function hidePreloader() {
+      if (hidden) return;
+      hidden = true;
+      preloader.classList.add('is-hidden');
+    }
+
+    window.addEventListener('load', hidePreloader);
+    setTimeout(hidePreloader, 5000);
+  })();
+</script>
+```
+
+**Всё.** Прелоадер работает — показывается до загрузки, исчезает после.
+
+## Доступность и SEO
+
+**Два важных момента:**
+
+### 1. Прелоадер не должен блокировать контент для SEO
+
+**Google и Яндекс** индексируют **HTML-контент** страницы. Прелоадер — это **просто `div`**, он **не мешает** поисковикам. **Но** если прелоадер **перекрывает** контент при парсинге — это плохо.
+
+**Решение:** прелоадер **скрывается через JS**. Поисковики **выполняют JS**, поэтому увидят контент.
+
+### 2. Уважайте `prefers-reduced-motion`
+
+**Некоторые пользователи** не переносят анимации. Добавьте в CSS:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+}
+```
+
+**Или** замените спиннер на **статичную картинку** для таких пользователей.
+
+## Частые ошибки
+
+### 1. Прелоадер не исчезает
+
+**Причина:** `window.onload` не сработал — обычно из-за **незагруженного ресурса** (битая картинка, медленный скрипт).
+
+**Решение:** **страховочный `setTimeout`** из примера выше.
+
+### 2. Прелоадер исчезает слишком рано
+
+**Причина:** используется **`DOMContentLoaded`** вместо **`load`**. `DOMContentLoaded` срабатывает, когда **HTML готов**, но **картинки ещё грузятся**.
+
+**Решение:** используйте **`load`** — он ждёт **все ресурсы**.
+
+### 3. Спиннер «дёргается»
+
+**Причина:** браузер **не успевает** отрендерить 3D.
+
+**Решение:** **упростите** анимацию или используйте **2D-спиннер**.
+
+### 4. Прелоадер виден при повторных посещениях
+
+**Причина:** браузер **грузит из кэша**, но `onload` **всё равно срабатывает** — это ок.
+
+**Решение:** для **мгновенных** загрузок можно **показывать прелоадер только при первом посещении**:
+
+```js
+if (!sessionStorage.getItem('visited')) {
+  sessionStorage.setItem('visited', 'true');
+  // Показать прелоадер
+}
+```
+
+## Итог
+
+**Прелоадер на сайт — это три шага:**
+
+1. **HTML** — `<div>` с анимацией в начале `<body>`
+2. **CSS** — стили и `@keyframes` для анимации
+3. **JS** — скрыть после `window.load` + страховка
+
+**Что даёт:**
+
+- **Красивое впечатление** от загрузки
+- **Скрытие FOUC** — никаких прыжков контента
+- **Восприятие скорости** — сайт кажется быстрее
+
+**Что важно:** прелоадер **не ускоряет** сайт — он **маскирует** время загрузки. Если сайт тормозит — сначала оптимизируйте скорость.
+
+## FAQ
+
+### Прелоадер ухудшает SEO?
+
+**Нет.** Поисковики **выполняют JavaScript** и видят контент после скрытия. Прелоадер — это **UX-фича**, не SEO-фактор.
+
+### Зачем страховочный setTimeout?
+
+**На случай, если какой-то ресурс не загрузился.** Без страховки прелоадер **останется навсегда** — пользователь увидит только спиннер.
+
+### Можно ли показывать прелоадер только один раз?
+
+**Да.** Используйте **`sessionStorage`** — если пользователь уже заходил, прелоадер **не показывается**.
+
+### Как сделать минимальное время показа?
+
+**Добавьте `setTimeout` с минимальной задержкой**:
+
+```js
+setTimeout(function() {
+  window.addEventListener('load', hidePreloader);
+  // или сразу скрыть, если уже загружено
+  if (document.readyState === 'complete') hidePreloader();
+}, 800);
+```
+
+**Что это даёт:** прелоадер **не исчезнет** быстрее 800 мс — даже если всё загрузилось мгновенно.
+
+### Работает ли прелоадер в WordPress?
+
+**Да, но по-другому.** В WordPress нужно либо **править файл темы**, либо использовать **плагин прелоадера** (их много в репозитории).
+
+---
+
+**Хотите сделать прелоадер на Тильде?** Читайте [Как сделать прелоадер на Тильде](/blog/kak-sdelat-preloader-na-tilde) — там инструкция для конструктора. А если нужно разобраться с плавным скроллом — [Как сделать плавный скролл на Тильде](/blog/kak-sdelat-plavnyj-skroll-na-tilde).

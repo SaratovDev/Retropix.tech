@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import PostCard from '../../components/PostCard.astro';
+import { SITE, CATEGORIES } from '../../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Собираем теги, которые реально есть в статьях
+const activeTagSlugs = new Set(posts.flatMap((post) => post.data.tags));
+
+// Фильтруем только те рубрики, у которых есть статьи
+const filters = CATEGORIES.filter((cat) => activeTagSlugs.has(cat.slug));
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: `Блог — ${SITE.name}`,
+  description: SITE.description,
+  url: new URL('/blog', Astro.site).href,
+  inLanguage: SITE.lang,
+};
+---
+
+<BaseLayout
+  title="Блог"
+  description={`Все статьи блога ${SITE.name}: практика по веб-разработке, вёрстке и SEO.`}
+  schema={schema}
+>
+  <section class="blog-list">
+    <div class="container">
+      <Breadcrumbs items={[{ label: 'Блог' }]} />
+
+      <h1 class="blog-list__title">Блог</h1>
+      <p class="blog-list__description">
+        Практические статьи о создании сайтов на Tilda, WordPress, HTML+CSS и SEO.
+        Без воды — только то, что работает.
+      </p>
+
+      {posts.length === 0 ? (
+        <p class="blog-list__empty">
+          Скоро здесь появятся статьи — сейчас работаю над первыми материалами.
+        </p>
+      ) : (
+        <>
+          <!-- Фильтры по тегам -->
+          {filters.length > 0 && (
+            <div class="blog-filters" data-filters>
+              <button
+                type="button"
+                class="blog-filters__btn is-active"
+                data-filter="all"
+                aria-pressed="true"
+              >
+                Все
+              </button>
+
+              {filters.map((cat) => (
+                <button
+                  type="button"
+                  class="blog-filters__btn"
+                  data-filter={cat.slug}
+                  aria-pressed="false"
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <!-- Сетка карточек -->
+          <div class="blog-list__grid" data-posts-grid>
+            {posts.map((post) => (
+              <div class="blog-list__grid-item" data-post-tags={post.data.tags.join(',')}>
+                <PostCard post={post} />
+              </div>
+            ))}
+          </div>
+
+          <!-- Сообщение, если по фильтру ничего нет -->
+          <p class="blog-list__empty is-hidden" data-empty-message>
+            В этой рубрике пока нет статей — но скоро появятся.
+          </p>
+        </>
+      )}
+    </div>
+  </section>
+</BaseLayout>

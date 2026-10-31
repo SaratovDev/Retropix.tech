@@ -1,0 +1,55 @@
+:root {
+  /* Цвета */
+  --bg: #F5F5F3;
+  --bg-alt: #FFFFFF;
+  --bg-dark: #0A0A0A;
+  --text: #0A0A0A;
+  --text-muted: #6B6B6B;
+  --text-inverse: #F5F5F3;
+  --border: #0A0A0A;
+  --border-soft: #D4D4D0;
+
+  --accent: #F36223;
+  --accent-dark: #D14A0F;
+  --highlight: #F7F21A;
+  --success: #2A7D4F;
+  
+    /* Цвета для контента / кода / плашек */
+  --code-bg: #F0F0EC;
+  --code-border: #E0E0DC;
+  --quote-bg: #F0F0EC;
+  --callout-bg: #F0F0EC;
+  --callout-border: var(--accent);
+
+  /* Типографика */
+  --font-display: 'Inter Tight', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  /* Сетка */
+
+  --gutter: clamp(16px, 4vw, 48px);
+
+  /* Анимации */
+  --ease: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.3s !important;
+  }
+}

@@ -1,0 +1,231 @@
+---
+import SmoothScroll from '../components/SmoothScroll.astro'
+
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/inter-tight/900.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/700.css';
+
+import '../styles/tokens.css';
+import '../styles/reset.css';
+import '../styles/base.css';
+import '../styles/layout.css';
+import '../styles/components.css';
+import '../styles/prose.css';
+
+import SEO from '../components/SEO.astro';
+import { SITE, AUTHOR, CATEGORIES } from '../consts';
+
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  noindex?: boolean;
+  schema?: object | object[];
+}
+
+const { ...seoProps } = Astro.props;
+const currentYear = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <SEO {...seoProps} />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="site-header">
+  <div class="container site-header__inner">
+    <a href="/" class="site-header__logo">{SITE.name}</a>
+
+    <nav class="site-header__nav">
+      <a href="/blog">Блог</a>
+      <a href="/learn">Обучение</a>
+      <a href="/services">Услуги</a>
+      <a href="/about">Обо мне</a>
+    </nav>
+
+    <a href="/contact" class="btn site-header__cta">
+      Обсудить проект
+      <span class="btn__arrow" aria-hidden="true">→</span>
+    </a>
+
+    <button
+      class="site-header__burger"
+      type="button"
+      aria-label="Открыть меню"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+      data-menu-toggle
+    >
+      <span></span>
+    </button>
+  </div>
+</header>
+
+<!-- Мобильное меню (шторы) -->
+<div
+  id="mobile-nav"
+  class="mobile-nav"
+  aria-hidden="true"
+  data-mobile-nav
+>
+  <nav class="container mobile-nav__inner">
+    <ul class="mobile-nav__list">
+      <li><a href="/blog" data-mobile-link>Блог</a></li>
+      <li><a href="/learn" data-mobile-link>Обучение</a></li>
+      <li><a href="/services" data-mobile-link>Услуги</a></li>
+      <li><a href="/about" data-mobile-link>Обо мне</a></li>
+    </ul>
+
+    <a
+      href="https://t.me/web_desigm"
+      class="btn mobile-nav__cta"
+      target="_blank"
+      rel="noopener noreferrer"
+      data-mobile-link
+    >
+      Связаться со мной
+      <span class="btn__arrow" aria-hidden="true">→</span>
+    </a>
+
+    <div class="mobile-nav__divider" aria-hidden="true"></div>
+
+    <ul class="mobile-nav__meta">
+      <li><a href="/rss.xml" data-mobile-link>RSS</a></li>
+    </ul>
+  </nav>
+</div>
+
+    <main>
+      <slot />
+    </main>
+
+   <footer class="site-footer">
+  <div class="container">
+    <!-- Верхняя часть: брендинг -->
+    
+
+    <!-- Разделитель -->
+    <div class="site-footer__divider" aria-hidden="true"></div>
+
+    <!-- Основная сетка: 4 колонки -->
+    <div class="site-footer__grid">
+      <!-- Колонка 1: Навигация -->
+      <div class="footer-col">
+        <h3 class="footer-col__title">Навигация</h3>
+        <ul class="footer-col__list">
+          <li><a href="/blog">Блог</a></li>
+          <li><a href="/learn">Обучение</a></li>
+          <li><a href="/services">Услуги</a></li>
+          <li><a href="/about">Обо мне</a></li>
+        </ul>
+      </div>
+
+      <!-- Колонка 2: Рубрики -->
+      <div class="footer-col">
+        <h3 class="footer-col__title">Рубрики блога</h3>
+        <ul class="footer-col__list">
+          {CATEGORIES.map((cat) => (
+            <li><a href={`/blog/tag/${cat.slug}`}>{cat.name}</a></li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Колонка 3: Контакты -->
+      <div class="footer-col">
+        <h3 class="footer-col__title">Контакты</h3>
+        <ul class="footer-col__list">
+          <li>
+            <a href={AUTHOR.contacts.telegram} target="_blank" rel="noopener noreferrer">
+              Telegram
+            </a>
+          </li>
+          <li>
+            <a href={AUTHOR.contacts.tenchat} target="_blank" rel="noopener noreferrer">
+              TenChat
+            </a>
+          </li>
+          <li><a href="/rss.xml">RSS</a></li>
+        </ul>
+      </div>
+
+      <!-- Колонка 4: Обратная связь -->
+      <div class="footer-col">
+        <h3 class="footer-col__title">Обратная связь</h3>
+        <ul class="footer-col__list">
+          <li><a href="/contact">Обсудить проект</a></li>
+          <li><a href="/contact#audit">Бесплатный аудит</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__top">
+      <div class="site-footer__brand">
+        <p class="site-footer__name">{SITE.name}</p>
+        <p class="site-footer__tagline">
+          Практический блог о создании сайтов: Tilda, WordPress, HTML+CSS и SEO.
+        </p>
+      </div>
+      <p class="site-footer__copyright">
+        © {currentYear} {SITE.name}
+      </p>
+    </div>
+  </div>
+  
+</footer>
+
+
+        <SmoothScroll />
+        
+<script>
+  import { initCopyCode } from '../scripts/copy-code';
+  import { initMobileMenu } from '../scripts/mobile-menu';
+  import { initBlogFilter } from '../scripts/blog-filter';
+  import { initContactForm } from '../scripts/contact-form';
+  import { initServices } from '../scripts/services';
+  import { initMemoryGame } from '../scripts/memory-game';
+  import { initLabyrinthGame } from '../scripts/labyrinth-game';
+  import { initLiveDemo } from '../scripts/live-demo';
+  import { initLeaderboard } from '../scripts/leaderboard';
+  import { initHeroSlider } from '../scripts/hero-slider';
+  import { initStartHere } from '../scripts/start-here';
+  import { initStickyCta } from '../scripts/sticky-cta';
+  import { initTypewriter } from '../scripts/typewriter';
+  import { initWorkSteps } from '../scripts/work-steps';
+  import { initAboutMe } from '../scripts/about-me';
+  import { initLearn } from '../scripts/learn';
+  import { initCases } from '../scripts/cases';
+
+  initCopyCode();
+  initMobileMenu();
+  initBlogFilter();
+  initContactForm();
+  initServices();
+  initMemoryGame();
+  initLabyrinthGame();
+  initLiveDemo();
+  initLeaderboard();
+  initHeroSlider();
+  initStartHere();
+  initStickyCta();
+  initTypewriter();
+  initWorkSteps();
+  initAboutMe();
+  initLearn();
+  initCases();
+</script>
+
+  </body>
+</html>

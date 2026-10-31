@@ -1,0 +1,53 @@
+---
+interface Props {
+  post: {
+    id: string;
+    data: {
+      title: string;
+      description: string;
+      pubDate: Date;
+      cover?: string;
+      coverAlt?: string;
+    };
+  };
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, cover, coverAlt } = post.data;
+
+// Первая буква заголовка для заглушки
+const firstLetter = title.trim().charAt(0).toUpperCase();
+
+// Форматирование даты
+const formattedDate = pubDate.toLocaleDateString('ru-RU', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<article class="post-card">
+  <a href={`/blog/${post.id}`} class="post-card__link">
+    <div class="post-card__cover">
+      {cover ? (
+        <img
+          src={cover}
+          alt={coverAlt ?? title}
+          width="400"
+          height="400"
+          loading="lazy"
+        />
+      ) : (
+        <span class="post-card__letter" aria-hidden="true">{firstLetter}</span>
+      )}
+    </div>
+
+    <time class="post-card__date" datetime={pubDate.toISOString()}>
+      {formattedDate}
+    </time>
+
+    <h3 class="post-card__title">{title}</h3>
+
+    <p class="post-card__description">{description}</p>
+  </a>
+</article>

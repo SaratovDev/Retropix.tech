@@ -1,0 +1,162 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import PostCard from '../../components/PostCard.astro';
+import AuthorBox from '../../components/AuthorBox.astro';
+import SubscribeForm from '../../components/SubscribeForm.astro';
+import { SITE, AUTHOR, getCategoryName } from '../../consts';
+import StickyCTA from '../../components/StickyCTA.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const { title, description, pubDate, updatedDate, cover, coverAlt, tags } = post.data;
+
+// Похожие статьи: берём 4 статьи с пересекающимися тегами, исключая текущую
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+
+const relatedPosts = allPosts
+  .filter((p) => p.id !== post.id)
+  .map((p) => {
+    const intersection = p.data.tags.filter((t) => tags.includes(t));
+    return { post: p, score: intersection.length };
+  })
+  .filter((item) => item.score > 0)
+  .sort((a, b) => b.score - a.score)
+  .slice(0, 4)
+  .map((item) => item.post);
+
+// Если по тегам не хватает — добираем свежими
+if (relatedPosts.length < 4) {
+  const fresh = allPosts
+    .filter((p) => p.id !== post.id && !relatedPosts.includes(p))
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+    .slice(0, 4 - relatedPosts.length);
+  relatedPosts.push(...fresh);
+}
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
+const imageURL = cover
+  ? new URL(cover, Astro.site).href
+  : new URL('/og-default.jpg', Astro.site).href;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  image: imageURL,
+  datePublished: pubDate.toISOString(),
+  dateModified: (updatedDate ?? pubDate).toISOString(),
+  author: {
+    '@type': 'Person',
+    name: AUTHOR.name,
+    url: AUTHOR.url,
+    ...(AUTHOR.sameAs.length > 0 && { sameAs: AUTHOR.sameAs }),
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.name,
+    url: SITE.url,
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': canonicalURL,
+  },
+  inLanguage: SITE.lang,
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={cover}
+  type="article"
+  publishedTime={pubDate.toISOString()}
+  modifiedTime={(updatedDate ?? pubDate).toISOString()}
+  schema={schema}
+>
+  <article class="post">
+    <div class="container">
+      <!-- Хлебные крошки -->
+      <Breadcrumbs
+        items={[
+          { label: 'Блог', href: '/blog' },
+          { label: title },
+        ]}
+      />
+
+      <!-- Мета: дата + теги -->
+      <div class="post__meta">
+        <time class="post__date" datetime={pubDate.toISOString()}>
+          {pubDate.toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </time>
+
+        {tags.length > 0 && (
+          <ul class="post__tags" aria-label="Теги статьи">
+            {tags.map((tag) => (
+              <li>
+                <a href={`/blog/tag/${tag}`} class="post__tag">
+                  {getCategoryName(tag)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <!-- H1 -->
+      <h1 class="post__title">{title}</h1>
+
+      <!-- Обложка 16:9 -->
+      {cover && (
+        <div class="post__cover">
+          <img
+            src={cover}
+            alt={coverAlt ?? title}
+            width="960"
+            height="540"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+      )}
+
+      <!-- Контент статьи в .prose -->
+      <div class="prose post__content">
+        <Content />
+      </div>
+        <StickyCTA />
+      <!-- AuthorBox: имя + дата -->
+      <AuthorBox date={pubDate} />
+
+      <!-- Похожие статьи -->
+      {relatedPosts.length > 0 && (
+        <section class="post__related">
+          <h2 class="post__related-title">Читайте также</h2>
+          <div class="post__related-grid">
+            {relatedPosts.map((relatedPost) => (
+              <PostCard post={relatedPost} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Форма подписки -->
+      <SubscribeForm />
+    </div>
+  </article>
+</BaseLayout>

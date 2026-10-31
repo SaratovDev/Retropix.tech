@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { SITE, CATEGORIES, getCategoryBySlug } from '../../../consts';
+
+export async function getStaticPaths() {
+  // Генерируем страницу для каждой рубрики из CATEGORIES,
+  // у которой есть хотя бы одна статья
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+  return CATEGORIES.map((category) => {
+    const categoryPosts = posts.filter((post) =>
+      post.data.tags.includes(category.slug)
+    );
+
+    // Пропускаем рубрики без статей
+    if (categoryPosts.length === 0) return null;
+
+    return {
+      params: { slug: category.slug },
+      props: { category, posts: categoryPosts },
+    };
+  }).filter((item): item is NonNullable<typeof item> => item !== null);
+}
+
+const { category, posts } = Astro.props;
+
+// Сортировка по дате, новые сверху
+const sortedPosts = posts.sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `Статьи по теме ${category.name}`,
+  description: category.description,
+  url: new URL(Astro.url.pathname, Astro.site).href,
+  inLanguage: SITE.lang,
+  isPartOf: {
+    '@type': 'Blog',
+    name: `Блог — ${SITE.name}`,
+    url: new URL('/blog', Astro.site).href,
+  },
+};
+---
+
+<BaseLayout
+  title={`${category.name} — статьи`}
+  description={category.description}
+  schema={schema}
+>
+  <section class="blog-list">
+    <div class="container">
+      <Breadcrumbs
+        items={[
+          { label: 'Блог', href: '/blog' },
+          { label: category.name },
+        ]}
+      />
+
+      <h1 class="blog-list__title">{category.name}</h1>
+      <p class="blog-list__description">{category.description}</p>
+
+      <div class="blog-list__grid">
+        {sortedPosts.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+
+      <div class="blog-list__footer">
+        <a href="/blog" class="btn">
+          Все статьи
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

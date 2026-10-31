@@ -1,0 +1,270 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE, AUTHOR, ABOUT_ME, SERVICE_GROUPS } from '../consts';
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: AUTHOR.name,
+    url: new URL('/about', Astro.site).href,
+    jobTitle: AUTHOR.jobTitle,
+    knowsAbout: AUTHOR.knowsAbout,
+    sameAs: AUTHOR.sameAs,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Саратов',
+      addressCountry: 'RU',
+    },
+    worksFor: {
+      '@type': 'Organization',
+      name: SITE.name,
+      url: SITE.url,
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name: AUTHOR.name,
+      url: new URL('/about', Astro.site).href,
+    },
+    inLanguage: SITE.lang,
+  },
+];
+---
+
+<BaseLayout
+  title="Обо мне — веб-разработчик из Саратова"
+  description="Вадим Шабанов — веб-разработчик из Саратова. С 2021 года. 50+ проектов на Tilda, WordPress и чистом коде. Основной упор — продающая структура сайта."
+  schema={schema}
+>
+  <!-- ============================================ -->
+  <!-- INTRO: фото + текст                          -->
+  <!-- ============================================ -->
+  <section class="about-page">
+    <div class="container">
+      <Breadcrumbs items={[{ label: 'Обо мне' }]} />
+
+      <span class="label about-page__label">Кто я</span>
+
+      <div class="about-page__grid">
+        <!-- Фото -->
+        <div class="about-page__photo-wrap">
+          <div class="about-page__photo">
+            <img
+              src={ABOUT_ME.photo}
+              alt={ABOUT_ME.photoAlt}
+              width="600"
+              height="750"
+              loading="eager"
+              fetchpriority="high"
+            />
+            <span class="about-page__photo-placeholder" aria-hidden="true">
+              [ФОТО]
+            </span>
+          </div>
+        </div>
+
+        <!-- Текст -->
+        <div class="about-page__content">
+          <h1 class="about-page__title">
+            Вадим Шабанов — веб-разработчик из Саратова
+          </h1>
+
+          <p class="about-page__lead">
+            Разрабатываю сайты с 2021 года. За это время запустил
+            <strong>50+ проектов</strong> — от лендингов на Tilda до интернет-магазинов
+            на WordPress и сайтов на чистом коде.
+          </p>
+
+          <p class="about-page__text">
+            Мой основной упор — <strong>продающая структура сайта</strong>.
+            Красивый дизайн — это здорово, но сайт должен решать задачу бизнеса:
+            приводить клиентов, продавать, удерживать. Поэтому я начинаю
+            не с вёрстки, а с вопроса «что должен делать этот сайт?»
+          </p>
+
+          <p class="about-page__text">
+            Специализируюсь на Tilda, WordPress, HTML+CSS и современном
+            фреймворке Astro JS. Веду блог, где бесплатно делюсь опытом
+            разработки — от базовых вещей до продвинутых приёмов.
+          </p>
+
+          <!-- Цифры -->
+          <div class="about-page__stats">
+            {ABOUT_ME.stats.map((stat) => (
+              <div class="about-stat">
+                <span class="about-stat__value">
+                  {stat.value}{stat.suffix}
+                </span>
+                <span class="about-stat__label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <!-- Соцсети -->
+          <div class="about-page__contacts">
+            <p class="about-page__contacts-label">Где меня найти:</p>
+            <ul class="about-page__contacts-list">
+              <li>
+                <a
+                  href={AUTHOR.contacts.telegram}
+                  class="about-page__contact-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Telegram <span aria-hidden="true">→</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href={AUTHOR.contacts.tenchat}
+                  class="about-page__contact-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  TenChat <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <a href="/contact" class="btn about-page__btn">
+            Обсудить проект
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- ПРИНЦИПЫ РАБОТЫ                              -->
+  <!-- ============================================ -->
+  <section class="about-principles">
+    <div class="container">
+      <span class="label about-principles__label">Принципы</span>
+      <h2 class="about-principles__title">
+        Как я подхожу к работе
+      </h2>
+
+      <div class="about-principles__grid">
+        <article class="about-principle">
+          <span class="about-principle__number">01</span>
+          <h3 class="about-principle__title">Продающая структура</h3>
+          <p class="about-principle__text">
+            Сайт начинается не с дизайна, а с логики. Я разбираюсь, кто
+            ваша аудитория, что она хочет, и выстраиваю страницы так,
+            чтобы каждая вела к целевому действию. Красивый, но не
+            продающий сайт — деньги на ветер.
+          </p>
+        </article>
+
+        <article class="about-principle">
+          <span class="about-principle__number">02</span>
+          <h3 class="about-principle__title">Прозрачные сроки и цены</h3>
+          <p class="about-principle__text">
+            Фиксирую объём работ, стоимость и сроки в договоре.
+            Предоплата 50%. Никаких «плюс-минус» и «уточним по ходу».
+            Вы знаете, что получите и когда.
+          </p>
+        </article>
+
+        <article class="about-principle">
+          <span class="about-principle__number">03</span>
+          <h3 class="about-principle__title">Технологии под задачу</h3>
+          <p class="about-principle__text">
+            Tilda — для быстрого запуска. WordPress — для гибких проектов.
+            Чистый код — для максимальной скорости и SEO. Astro JS — для
+            контентных сайтов. Не «навязываю» стек, а выбираю под задачу.
+          </p>
+        </article>
+
+        <article class="about-principle">
+          <span class="about-principle__number">04</span>
+          <h3 class="about-principle__title">Поддержка после сдачи</h3>
+          <p class="about-principle__text">
+            Передаю доступы, обучаю управлению. 30 дней после запуска —
+            бесплатная поддержка: помогаю с правками, отвечаю на вопросы.
+            Вы не остаётесь один на один с сайтом.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- УСЛУГИ — КРАТКО                              -->
+  <!-- ============================================ -->
+  <section class="about-services">
+    <div class="container">
+      <span class="label about-services__label">Чем могу помочь</span>
+      <h2 class="about-services__title">Услуги</h2>
+
+      <div class="about-services__grid">
+        {SERVICE_GROUPS.map((service) => (
+          <a href="/services" class="about-service-card">
+            <span class="about-service-card__number">{service.number}</span>
+            <h3 class="about-service-card__title">{service.title}</h3>
+            <p class="about-service-card__text">{service.description}</p>
+            <span class="about-service-card__arrow" aria-hidden="true">→</span>
+          </a>
+        ))}
+      </div>
+
+      <div class="about-services__footer">
+        <a href="/services" class="btn">
+          Все услуги и цены
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- ЛИЧНОЕ                                       -->
+  <!-- ============================================ -->
+  <section class="about-personal">
+    <div class="container">
+      <span class="label about-personal__label">Вне работы</span>
+      <h2 class="about-personal__title">
+        Чем занимаюсь, когда не пишу код
+      </h2>
+
+      <p class="about-personal__text">
+        Живу в Саратове. В свободное время тренируюсь, играю в покер
+        и шахматы, посещаю театры и выставки в разных городах. Считаю,
+        что разработчик должен развиваться не только в профессии —
+        кругозор влияет на качество решений.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- CTA                                          -->
+  <!-- ============================================ -->
+  <section class="about-cta">
+    <div class="container">
+      <h2 class="about-cta__title">
+        Есть задача? Обсудим.
+      </h2>
+      <p class="about-cta__lead">
+        Опишите проект — предложу решение и назову сроки.
+        Отвечаю в течение рабочего дня.
+      </p>
+      <div class="about-cta__actions">
+        <a href="/contact" class="btn">
+          Обсудить проект
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/services" class="btn">
+          Посмотреть услуги
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

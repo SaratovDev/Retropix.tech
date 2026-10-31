@@ -1,0 +1,418 @@
+---
+title: "Как создать сайт на Astro JS с нуля: пошаговая инструкция"
+description: "Пошаговый гайд по созданию сайта на Astro JS: установка, структура проекта, первая страница, компоненты, сборка и деплой на Cloudflare Pages."
+pubDate: 2026-10-26
+cover: "/images/blog/kak-sozdat-sajt-na-astro-cover.png"
+coverAlt: "Терминал с командой создания проекта Astro JS"
+tags: ["astrojs", "features", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+В [предыдущей статье](/blog/chto-takoe-astro-js) мы разобрали, что такое Astro и зачем он нужен. Теперь — **практика**. Создадим сайт с нуля: от установки до публикации в интернете.
+
+Этот гайд рассчитан на **новичков**, которые уже немного знают HTML и CSS. Если вы никогда не работали с командной строкой — не страшно, каждый шаг разберу подробно.
+
+
+
+## Что вы узнаете
+
+- [Что нужно для работы](#что-нужно-для-работы)
+- [Установка Astro](#установка-astro)
+- [Структура проекта](#структура-проекта)
+- [Первая страница](#первая-страница)
+- [Создаём компонент](#создаём-компонент)
+- [Создаём layout](#создаём-layout)
+- [Сборка и деплой](#сборка-и-деплой)
+
+![Страница Astro JS](/images/blog/kak-sozdat-sajt-na-astro-01.png)
+
+## Что нужно для работы
+
+Для работы с Astro понадобится **три вещи**:
+
+1. **Node.js** — версия **18.17.1** или **20.3.0** и выше. Это среда, в которой работает Astro
+2. **Редактор кода** — рекомендую **VS Code** с официальным расширением Astro
+3. **Терминал** — командная строка, встроенная в вашу систему
+
+**Как проверить Node.js:** откройте терминал и выполните:
+
+```bash
+node -v
+```
+
+**Если видите версию** (`v20.x.x` или `v22.x.x`) — всё в порядке. **Если ошибка** — скачайте Node.js с [nodejs.org](https://nodejs.org).
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Astro поддерживает <strong>чётные версии</strong> Node.js: v18, v20, v22. Версии v19 и v21 <strong>не поддерживаются</strong> [citation:9].</p>
+</div>
+
+## Установка Astro
+
+Astro устанавливается через **мастер настройки** — специальный инструмент, который задаст несколько вопросов и создаст проект.
+
+**Откройте терминал** и выполните:
+
+```bash
+npm create astro@latest
+```
+
+**Что произойдёт:** запустится пошаговый мастер [citation:2].
+
+### Что отвечать в мастере
+
+| Вопрос | Что выбрать |
+|---|---|
+| **Where should we create your new project?** | `my-astro-site` (или своё имя) |
+| **How would you like to start your new project?** | **Empty** — начнём с чистого листа |
+| **Install dependencies?** | **Yes** |
+| **Initialize a git repository?** | **Yes** (пригодится) |
+| **TypeScript?** | **Yes** → **Strict** |
+
+**После установки** перейдите в папку проекта:
+
+```bash
+cd my-astro-site
+```
+
+**Запустите сервер разработки:**
+
+```bash
+npm run dev
+```
+
+**Откройте браузер:** по адресу `http://localhost:4321/` [citation:2].
+
+**Что вы увидите:** пустую страницу Astro — это **рабочий каркас**, в который будем добавлять контент.
+
+
+
+**Как остановить сервер:** `Ctrl + C` в терминале.
+
+## Структура проекта
+
+Astro использует **чёткую структуру папок** [citation:3][citation:11]:
+
+```
+my-astro-site/
+├── public/              ← статические файлы (favicon, robots.txt)
+├── src/                 ← исходный код
+│   ├── pages/           ← страницы сайта
+│   │   └── index.astro  ← главная страница
+│   ├── components/      ← переиспользуемые компоненты
+│   └── layouts/         ← общие обёртки страниц
+├── astro.config.mjs     ← конфиг Astro
+├── package.json         ← зависимости и скрипты
+└── tsconfig.json        ← конфиг TypeScript
+```
+
+**Что важно понять:**
+
+- **`src/pages/`** — каждая `.astro`-страница = **отдельный URL**. `index.astro` → `/`, `about.astro` → `/about`
+- **`src/components/`** — куски интерфейса, которые можно **переиспользовать**
+- **`public/`** — файлы, которые **не обрабатываются** Astro: картинки, шрифты, `robots.txt`
+- **`src/`** — файлы, которые Astro **обрабатывает** при сборке [citation:3]
+
+## Первая страница
+
+Откройте **`src/pages/index.astro`**. Увидите примерно такой код:
+
+```astro
+---
+// Здесь можно писать JavaScript, который выполнится на сервере
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Astro</title>
+  </head>
+  <body>
+    <h1>Astro</h1>
+  </body>
+</html>
+```
+
+**Разберём структуру `.astro`-файла** [citation:5]:
+
+- **Часть между `---`** — «серверный блок». Здесь вы пишете JavaScript/TypeScript: импортируете данные, обрабатываете их
+- **Ниже `---`** — HTML-шаблон. Он **статичен**, но может использовать **переменные** из серверного блока через `{...}`
+
+**Поменяйте содержимое** на своё:
+
+```astro
+---
+const title = "Мой первый сайт на Astro";
+const description = "Создаю сайты с нуля и учу этому других.";
+---
+
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </body>
+</html>
+```
+
+**Сохраните** — dev-сервер **сам перезагрузит страницу**. Откройте `http://localhost:4321/` — увидите **свою страницу**.
+
+**Что произошло:** переменные `title` и `description` **выполнились на сервере** и попали в готовый HTML. **В браузере нет ни байта JavaScript** — только HTML и CSS.
+
+<LiveDemo
+  title="Как выглядит простая страница Astro"
+  height={280}
+  html={`
+    <div class="page">
+      <h1>Мой первый сайт на Astro</h1>
+      <p>Создаю сайты с нуля и учу этому других.</p>
+    </div>
+  `}
+  css={`
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 32px;
+      background: #F5F5F3;
+    }
+    .page {
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .page h1 {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      color: #0A0A0A;
+    }
+    .page p {
+      font-size: 18px;
+      line-height: 1.5;
+      color: #6B6B6B;
+      margin: 0;
+    }
+  `}
+/>
+
+## Создаём компонент
+
+Компоненты — это **переиспользуемые куски**. Например, кнопку, которую используют в разных местах.
+
+**Создайте папку** `src/components/` и **файл** `Button.astro`:
+
+```astro
+---
+interface Props {
+  text?: string;
+  href?: string;
+}
+
+const { text = 'Кнопка', href = '#' } = Astro.props;
+---
+
+<a href={href} class="btn">
+  {text}
+  <span class="btn__arrow">→</span>
+</a>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border: 1px solid #0A0A0A;
+    color: #0A0A0A;
+    text-decoration: none;
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: transparent;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .btn:hover {
+    background: #F36223;
+    color: #F5F5F3;
+    border-color: #F36223;
+  }
+</style>
+```
+
+**Разберём:**
+
+- **`interface Props`** — описывает, **какие данные** компонент принимает. `text?` означает, что параметр **необязательный** [citation:5]
+- **`Astro.props`** — объект со **всеми переданными параметрами**. Мы **деструктурируем** его: берём `text` и `href`
+- **`{text = 'Кнопка'}`** — если `text` не передан, используем значение по умолчанию
+- **`<style>`** — **встроенные стили** компонента. Они применяются **только к этому компоненту**, не «утекают» на другие
+
+**Теперь используем компонент** на главной. Откройте `src/pages/index.astro`:
+
+```astro
+---
+import Button from '../components/Button.astro';
+
+const title = "Мой первый сайт на Astro";
+---
+
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>Создаю сайты с нуля.</p>
+
+    <Button text="Связаться со мной" href="/contact" />
+  </body>
+</html>
+```
+
+**Что важно:** компонент **импортируется** как обычный JavaScript-модуль. Имя с **большой буквы** (`Button`) — **обязательно**, чтобы Astro понял, что это **компонент**, а не HTML-тег.
+
+## Создаём layout
+
+**Layout** — это **общая обёртка** для страниц. Обычно там `<head>`, шапка, футер — то, что **повторяется** на каждой странице [citation:5].
+
+**Создайте** `src/layouts/BaseLayout.astro`:
+
+```astro
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = '' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body>
+    <header>
+      <a href="/">Мой сайт</a>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer>
+      <p>© 2026</p>
+    </footer>
+  </body>
+</html>
+```
+
+**Ключевое:** **`<slot />`** — это **место**, куда вставляется **контент конкретной страницы**. Каждый layout **оборачивает** свой контент [citation:5].
+
+**Теперь используем layout** на главной:
+
+```astro
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+---
+
+<BaseLayout title="Главная" description="Мой первый сайт на Astro">
+  <h1>Добро пожаловать</h1>
+  <p>Этот сайт сделан на Astro.</p>
+
+  <Button text="Связаться со мной" />
+</BaseLayout>
+```
+
+**Что произошло:** `BaseLayout` **обернул** контент страницы. `title` и `description` попали в `<head>`, а всё, что между `<BaseLayout>` — в `<slot />`.
+
+## Сборка и деплой
+
+Когда сайт готов, его нужно **собрать** — превратить исходники в **готовые файлы**.
+
+**В терминале:**
+
+```bash
+npm run build
+```
+
+**Что произойдёт:** Astro создаст папку **`dist/`** с готовым сайтом — **только HTML и CSS**, минимум JavaScript [citation:18].
+
+**Проверьте локально:**
+
+```bash
+npm run preview
+```
+
+**Откройте** `http://localhost:4321/` — увидите **собранную версию** (как будет в интернете).
+
+### Деплой на Cloudflare Pages
+
+**Cloudflare Pages** — **бесплатный** хостинг для статических сайтов. Раздаёт контент через **глобальную CDN**, поддерживает **HTTPS** из коробки.
+
+**Шаги:**
+
+1. **Запушьте код на GitHub** (если ещё не)
+2. Откройте [pages.cloudflare.com](https://pages.cloudflare.com)
+3. **Создайте аккаунт** через GitHub
+4. **«Create a project»** → подключите репозиторий
+5. **Build command:** `npm run build`
+6. **Build output directory:** `dist`
+7. **«Save and Deploy»**
+
+**Через 2–5 минут** сайт будет доступен по адресу `ваш-проект.pages.dev`. **Далее** — можно подключить **свой домен** [citation:7].
+
+<div class="callout">
+  <span class="callout__label">Альтернатива</span>
+  <p>Аналогично работают <strong>Vercel</strong> и <strong>Netlify</strong>. Настройки те же: <code>npm run build</code> и папка <code>dist</code> [citation:7].</p>
+</div>
+
+## Что дальше
+
+Мы создали **минимальный сайт**. Чтобы развивать его:
+
+1. **Контент-коллекции** — для статей в Markdown. Astro проверит схему и не даст ошибиться [citation:6]
+2. **Стили** — вынести CSS в отдельные файлы, подключить шрифты
+3. **SEO** — добавить `sitemap`, `robots.txt`, Open Graph
+4. **Интерактив** — если нужен, добавить компоненты с `client:*`
+
+**Этот сайт**, на котором вы читаете статью, **сделан на Astro**. Откройте DevTools → Network → перезагрузите страницу. Увидите **минимум JavaScript** и **мгновенную загрузку**.
+
+## FAQ
+
+### Сколько времени займёт создание сайта?
+
+**Первый сайт — 1–2 часа**, если следовать инструкции. Для полноценного проекта с контентом — **несколько дней**.
+
+### Нужно ли знать React?
+
+**Нет.** Astro — **отдельный фреймворк**. Синтаксис `.astro` похож на HTML + JSX, но это **не React**. React (или Vue, Svelte) можно **добавлять точечно** для интерактива.
+
+### Можно ли использовать существующий HTML/CSS?
+
+**Да.** Скопируйте HTML в `.astro`-файл, а CSS — в `<style>`. Но лучший способ — **разбить на компоненты** для переиспользования.
+
+### Как добавить страницу?
+
+**Создайте файл** в `src/pages/`. Например, `about.astro` → страница `/about`. **Никакой настройки роутинга не нужно** [citation:20].
+
+### Где брать данные для блога?
+
+**Content Collections.** Создайте `src/content/blog/`, положите статьи в Markdown, опишите схему в `content.config.ts`. Astro всё проверит и сгенерирует страницы [citation:6].
+
+---
+
+**Понравилась статья?** Читайте также [Что такое Astro JS и зачем он нужен](/blog/chto-takoe-astro-js) — если хотите понять, почему этот фреймворк отличается от других. А если выбираете между платформами — [Tilda или WordPress](/blog/tilda-ili-wordpress).

@@ -1,0 +1,407 @@
+---
+title: "Как создать блог на Astro: пошаговое руководство"
+description: "Пошаговое руководство по созданию блога на Astro: Content Collections, динамические страницы, SEO, RSS, sitemap и деплой. С примерами из реального проекта."
+pubDate: 2026-10-30
+cover: "/images/blog/kak-sozdat-blog-na-astro-cover.png"
+coverAlt: "Структура блога на Astro с Content Collections"
+tags: ["astrojs", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Блог на Astro** — это сайт, который загружается мгновенно, отлично ранжируется и требует минимум JavaScript. Но чтобы всё работало правильно, нужно понять несколько ключевых концепций: **Content Collections**, **динамические страницы** и **настройку SEO**.
+
+В этом руководстве я покажу, как создать полноценный блог с нуля — на примере **этого сайта**, который вы сейчас читаете. Мы разберём каждый шаг: от структуры папок до деплоя.
+
+## Что вы узнаете
+
+- [Структура блога на Astro](#структура-блога)
+- [Создание Content Collection](#content-collection)
+- [Динамические страницы для статей](#динамические-страницы)
+- [Страница со списком статей](#список-статей)
+- [SEO-настройки для блога](#seo-настройки)
+- [RSS-фид и sitemap](#rss-sitemap)
+- [Деплой блога](#деплой)
+
+## Структура блога на Astro
+
+**Основа блога на Astro** — это три компонента:
+
+1. **Content Collection** — папка с Markdown-файлами, где хранятся статьи
+2. **Динамический маршрут** — страница, которая генерирует HTML для каждой статьи
+3. **Страница со списком** — страница, которая показывает все статьи
+
+**Структура папок** будет такой:
+
+```
+src/
+├── content/
+│   └── blog/
+│       ├── pervaya-statya.md
+│       ├── vtoraya-statya.md
+│       └── tretya-statya.md
+├── pages/
+│   ├── blog/
+│   │   ├── index.astro       ← список всех статей
+│   │   └── [slug].astro      ← отдельная статья
+│   └── rss.xml.ts            ← RSS-фид
+└── content.config.ts         ← схема коллекции
+```
+
+**Почему так:** Astro использует **файловый роутинг**. Файл `src/pages/blog/index.astro` станет страницей `/blog`, а `[slug].astro` — динамической страницей для каждой статьи. При этом статьи **не лежат в `src/pages/`** — они в `src/content/`, чтобы Astro мог их **валидировать и типизировать** через Content Collections.
+
+## Content Collection
+
+**Content Collection** — это система для управления контентом. Она проверяет каждую статью на соответствие **Zod-схеме** и даёт **типизацию** в редакторе.
+
+### Создаём схему
+
+Создайте файл **`src/content.config.ts`** в корне проекта:
+
+```ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string().max(70),
+    description: z.string().min(50).max(160),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+    cover: z.string().optional(),
+    coverAlt: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog };
+```
+
+**Разберём:**
+
+- **`glob({ pattern: '**/*.md', base: './src/content/blog' })`** — загрузчик, который ищет все `.md`-файлы в папке `src/content/blog/`
+- **`schema`** — Zod-схема. Каждое поле проверяется при сборке
+- **`z.coerce.date()`** — превращает строку из frontmatter в дату
+- **`.default([])`** — если поле не указано, используется пустой массив
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Начиная с Astro 5, файл конфига называется <strong><code>content.config.ts</code></strong> и лежит в <strong><code>src/</code></strong>, а не <strong><code>src/content/</code></strong>.</p>
+</div>
+
+### Создаём статью
+
+Создайте файл **`src/content/blog/pervaya-statya.md`**:
+
+```markdown
+---
+title: "Первая статья: как я начал делать сайты"
+description: "Рассказываю, с чего начал изучение веб-разработки, какие ошибки совершил и что помогло выйти на первый заказ."
+pubDate: 2026-10-30
+tags: ["новичкам", "опыт"]
+draft: false
+---
+
+## Введение
+
+Это первая статья в моём блоге. Здесь я расскажу...
+
+## Основная часть
+
+Текст статьи...
+```
+
+**Что важно:** если вы забудете `description` или укажете его длиной 20 символов — **сборка упадёт с понятной ошибкой**. Это **защита от SEO-ошибок**.
+
+## Динамические страницы
+
+**Динамический маршрут** генерирует HTML для каждой статьи. Создайте **`src/pages/blog/[slug].astro`**:
+
+```astro
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const { title, description, pubDate, tags } = post.data;
+---
+
+<BaseLayout title={title} description={description}>
+  <article>
+    <h1>{title}</h1>
+    <time datetime={pubDate.toISOString()}>
+      {pubDate.toLocaleDateString('ru-RU')}
+    </time>
+
+    <Content />
+
+    <ul>
+      {tags.map((tag) => (
+        <li><a href={`/blog/tag/${tag}`}>{tag}</a></li>
+      ))}
+    </ul>
+  </article>
+</BaseLayout>
+```
+
+**Ключевые моменты:**
+
+- **`getStaticPaths()`** — Astro вызывает эту функцию **на этапе сборки**. Она возвращает **массив путей** для каждой статьи
+- **`params: { slug: post.id }`** — URL будет `/blog/{post.id}`. Если файл называется `pervaya-statya.md`, то `post.id` = `pervaya-statya`
+- **`render(post)`** — превращает Markdown в HTML-компонент `Content`
+- **`<Content />`** — вставляет отрендеренный Markdown в разметку
+
+**Как это выглядит в браузере:** откройте любую статью на этом сайте — URL будет `/blog/kak-sozdat-blog-na-astro`. Это работает **именно так**.
+
+## Список статей
+
+Страница **`src/pages/blog/index.astro`** показывает **все статьи**:
+
+```astro
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title="Блог" description="Все статьи блога">
+  <h1>Блог</h1>
+
+  <div class="blog-grid">
+    {posts.map((post) => (
+      <article>
+        <a href={`/blog/${post.id}`}>
+          <h2>{post.data.title}</h2>
+        </a>
+        <p>{post.data.description}</p>
+        <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString('ru-RU')}
+        </time>
+      </article>
+    ))}
+  </div>
+</BaseLayout>
+```
+
+**Разберём:**
+
+- **`getCollection('blog', ...)`** — возвращает **все статьи** коллекции
+- **`.sort()`** — сортирует по дате, **новые сверху**
+- **`post.data.title`** — доступ к полям из frontmatter. **TypeScript знает**, что там строка
+
+**На этом сайте** список статей выглядит именно так — с сортировкой по дате и карточками.
+
+## SEO-настройки
+
+**Блог без SEO — это блог, который никто не найдёт.** Настроим базовые вещи.
+
+### Мета-теги
+
+В `BaseLayout.astro` добавьте **SEO-компонент**:
+
+```astro
+---
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+}
+
+const { title, description = '', image = '/og-default.jpg' } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonicalURL} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:image" content={new URL(image, Astro.site).href} />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+</head>
+```
+
+**Что важно:**
+
+- **Canonical** — говорит поисковикам, что это **основная версия страницы**
+- **Open Graph** — как статья выглядит **при шаринге в соцсетях**
+- **Twitter Cards** — то же для Twitter/X
+
+### Schema.org
+
+**Для статей** добавьте **JSON-LD разметку** `BlogPosting`:
+
+```astro
+<script type="application/ld+json" set:html={JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: description,
+  datePublished: pubDate.toISOString(),
+  dateModified: (updatedDate ?? pubDate).toISOString(),
+  author: {
+    '@type': 'Person',
+    name: 'Вадим Шабанов',
+  },
+})} />
+```
+
+**Что это даёт:** Google может показать **расширенный сниппет** с датой, автором и заголовком в выдаче.
+
+## RSS-фид и sitemap
+
+### RSS-фид
+
+**RSS** позволяет читателям **подписаться на обновления**. Установите пакет:
+
+```bash
+npm install @astrojs/rss
+```
+
+Создайте **`src/pages/rss.xml.ts`**:
+
+```ts
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import type { APIContext } from 'astro';
+
+export async function GET(context: APIContext) {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+  return rss({
+    title: 'Вадим Шабанов — блог',
+    description: 'Разборы и гайды по веб-разработке',
+    site: context.site!,
+    items: posts.map((post) => ({
+      title: post.data.title,
+      description: post.data.description,
+      pubDate: post.data.pubDate,
+      link: `/blog/${post.id}`,
+    })),
+  });
+}
+```
+
+**Параметры RSS**:
+- **`title`** — название фида
+- **`site`** — базовый URL для ссылок
+- **`items`** — массив статей с **title**, **description**, **pubDate**, **link**
+
+### Sitemap
+
+**Sitemap** помогает поисковикам **найти все страницы**. Установите:
+
+```bash
+npx astro add sitemap
+```
+
+**И добавьте в `astro.config.mjs`:**
+
+```js
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://your-domain.com',
+  integrations: [sitemap()],
+});
+```
+
+**Что это даёт:** Astro создаст **`sitemap-index.xml`** и **`sitemap-0.xml`** при сборке. Отправьте их в **Google Search Console** и **Яндекс.Вебмастер**.
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Без поля <strong><code>site</code></strong> в <code>astro.config.mjs</code> sitemap не сгенерируется. Укажите реальный домен — не localhost.</p>
+</div>
+
+### robots.txt
+
+Создайте **`public/robots.txt`**:
+
+```
+User-agent: *
+Allow: /
+
+Sitemap: https://your-domain.com/sitemap-index.xml
+```
+
+## Деплой
+
+Когда блог готов, его нужно **опубликовать**. **Сборка:**
+
+```bash
+npm run build
+```
+
+Astro создаст папку **`dist/`** с готовым сайтом — **только HTML и CSS**.
+
+**Рекомендую Cloudflare Pages:**
+1. Запушьте код на GitHub
+2. Откройте [pages.cloudflare.com](https://pages.cloudflare.com)
+3. Подключите репозиторий
+4. **Build command:** `npm run build`
+5. **Output directory:** `dist`
+
+Через 2–5 минут сайт будет доступен. **Далее** — можно подключить свой домен.
+
+## Что дальше
+
+Мы создали **базовый блог**. Чтобы развивать его:
+
+- **Категории и теги** — создайте страницы `/blog/tag/[tag].astro` для фильтрации статей
+- **Поиск** — добавьте Pagefind или Fuse.js для поиска по блогу
+- **Комментарии** — подключите Giscus (на GitHub Discussions)
+- **Аналитика** — Яндекс.Метрика или Plausible
+
+**Этот сайт** сделан именно так — с Content Collections, динамическими страницами, SEO и RSS. Откройте DevTools → Network → перезагрузите страницу. Увидите **минимум JavaScript** и **мгновенную загрузку**.
+
+## FAQ
+
+### Сколько статей можно вести на Astro?
+
+**Неограниченно.** Astro генерирует **статические HTML** для каждой статьи при сборке. Даже **1000 статей** — сборка занимает минуты, сайт работает быстро.
+
+### Нужно ли использовать Content Collections?
+
+**Для блога — да.** Без них вы теряете типизацию, валидацию и удобный API. Это **главная фича Astro** для контентных сайтов.
+
+### Можно ли писать в MDX вместо Markdown?
+
+**Да.** Загрузчик `glob` поддерживает **`.mdx`-файлы**. Укажите `pattern: '**/*.mdx'` — и пишите с компонентами.
+
+### Как добавить категории?
+
+Создайте **отдельную коллекцию** или используйте **теги** в frontmatter. Для страниц категорий — **динамический маршрут** `/blog/tag/[tag].astro`.
+
+### Можно ли подключить внешний CMS?
+
+**Да.** Для этого используются **кастомные загрузчики** (Sanity, Cosmic, WordPress). Astro фетчит данные через API и генерирует статические страницы.
+
+---
+
+**Хотите разобраться с Content Collections глубже?** Читайте [Контент-коллекции в Astro: полное руководство](/blog/content-collections-v-astro). А если только начинаете с Astro — [Как создать сайт на Astro JS с нуля](/blog/kak-sozdat-sajt-na-astro).

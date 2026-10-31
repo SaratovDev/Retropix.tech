@@ -1,0 +1,251 @@
+<!-- Модалка с игрой «Слепой лабиринт» -->
+<!-- 4 экрана: выбор уровня / игра / победа / проигрыш -->
+
+<div class="labyrinth-modal" data-labyrinth-modal hidden>
+  <div class="labyrinth-modal__overlay" data-labyrinth-close></div>
+
+  <div
+    class="labyrinth-modal__content"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="labyrinth-title"
+  >
+    <button
+      type="button"
+      class="labyrinth-modal__close"
+      aria-label="Закрыть игру"
+      data-labyrinth-close
+    >✕</button>
+
+    <!-- ============================ -->
+    <!-- ЭКРАН 1: ВЫБОР УРОВНЯ         -->
+    <!-- ============================ -->
+    <div class="labyrinth-modal__screen" data-labyrinth-screen="select">
+      <h2 class="labyrinth-modal__title" id="labyrinth-title">
+        Выберите уровень
+      </h2>
+
+      <p class="labyrinth-modal__lead">
+        Чем больше поле — тем выше скидка. Ловушки помечаются 💀 после
+        первого попадания. Пройдите до выхода — заберите скидку.
+      </p>
+
+      <div class="labyrinth-levels">
+        <button
+          type="button"
+          class="labyrinth-level"
+          data-labyrinth-start="4"
+        >
+          <span class="labyrinth-level__size">4×4</span>
+          <span class="labyrinth-level__discount">−5%</span>
+          <span class="labyrinth-level__note">Простой</span>
+        </button>
+
+        <button
+          type="button"
+          class="labyrinth-level"
+          data-labyrinth-start="6"
+        >
+          <span class="labyrinth-level__size">6×6</span>
+          <span class="labyrinth-level__discount">−15%</span>
+          <span class="labyrinth-level__note">Средний</span>
+        </button>
+
+        <button
+          type="button"
+          class="labyrinth-level labyrinth-level--desktop"
+          data-labyrinth-start="8"
+        >
+          <span class="labyrinth-level__size">8×8</span>
+          <span class="labyrinth-level__discount">−30%</span>
+          <span class="labyrinth-level__note">Сложный</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================ -->
+    <!-- ЭКРАН 2: ИГРА                 -->
+    <!-- ============================ -->
+    <div class="labyrinth-modal__screen labyrinth-modal__screen--playing" data-labyrinth-screen="playing" hidden>
+      <div class="labyrinth-modal__topbar">
+        <div class="labyrinth-modal__stats">
+          <span class="game-stat">
+            <span class="game-stat__label">Уровень</span>
+            <span class="game-stat__value">
+              <span data-labyrinth-size>4×4</span>
+            </span>
+          </span>
+          <span class="labyrinth-modal__dot" aria-hidden="true">·</span>
+          <span class="game-stat">
+            <span class="game-stat__label">Скидка</span>
+            <span class="game-stat__value">
+              −<span data-labyrinth-discount>5</span>%
+            </span>
+          </span>
+          <span class="labyrinth-modal__dot" aria-hidden="true">·</span>
+          <span class="game-stat">
+            <span class="game-stat__label">Время</span>
+            <span class="game-stat__value">
+              <span data-labyrinth-time>00:00</span>
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div class="labyrinth-board" data-labyrinth-board>
+        <!-- Поле генерируется JS -->
+      </div>
+
+      <div class="labyrinth-modal__controls">
+        <button
+          type="button"
+          class="btn labyrinth-modal__reset"
+          data-labyrinth-reset
+        >
+          Начать заново
+        </button>
+        <button
+          type="button"
+          class="labyrinth-modal__back"
+          data-labyrinth-back
+        >
+          Сменить уровень
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================ -->
+    <!-- ЭКРАН 3: ПОБЕДА               -->
+    <!-- ============================ -->
+    <div class="labyrinth-modal__screen" data-labyrinth-screen="win" hidden>
+      <p class="labyrinth-modal__win-label">Победа!</p>
+      <h2 class="labyrinth-modal__title">
+        🎉 Вы выиграли скидку −<span data-labyrinth-win-discount>5</span>%
+      </h2>
+
+      <p class="labyrinth-modal__win-note">
+        Ваше время: <strong data-labyrinth-result-time>00:00</strong>
+      </p>
+      <p class="labyrinth-modal__win-hint">
+        Отправьте форму — и ваш результат автоматически попадёт в таблицу лидеров.
+      </p>
+
+      <form class="contact-form labyrinth-modal__form" action="#" method="POST" data-contact-form data-labyrinth-win-form>
+        <input type="hidden" name="discount" value="5" data-labyrinth-discount-field />
+        <input type="hidden" name="source" value="labyrinth-game" />
+        <input type="hidden" name="level" value="" data-labyrinth-level-field />
+
+        <div class="field">
+          <label for="labyrinth-name" class="field__label">
+            Имя (попадёт в таблицу лидеров) <span class="field__required">*</span>
+          </label>
+          <input
+            type="text"
+            id="labyrinth-name"
+            name="name"
+            class="field__input"
+            required
+            maxlength="30"
+            data-leaderboard-nickname
+          />
+        </div>
+
+        <fieldset class="field field--radio">
+          <legend class="field__label">
+            Способ связи <span class="field__required">*</span>
+          </legend>
+          <div class="radio-group">
+            <label class="radio">
+              <input type="radio" name="contact-method" value="telegram" checked data-method />
+              <span class="radio__box"></span>
+              <span class="radio__label">Telegram</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="contact-method" value="phone" data-method />
+              <span class="radio__box"></span>
+              <span class="radio__label">Телефон</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="contact-method" value="max" data-method />
+              <span class="radio__box"></span>
+              <span class="radio__label">MAX</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="labyrinth-contact" class="field__label" data-value-label>
+            Ваш ник или телефон в Telegram
+          </label>
+          <input
+            type="text"
+            id="labyrinth-contact"
+            name="contact"
+            class="field__input"
+            placeholder="@username или +7..."
+            required
+            data-value-input
+          />
+        </div>
+
+        <div class="field">
+          <label for="labyrinth-message" class="field__label">
+            Какая услуга интересует? <span class="field__optional">(опционально)</span>
+          </label>
+          <textarea
+            id="labyrinth-message"
+            name="message"
+            class="field__input field__textarea"
+            rows="3"
+            placeholder="Например: нужен лендинг на Tilda"
+          ></textarea>
+        </div>
+
+        <label class="checkbox">
+          <input type="checkbox" name="consent" required />
+          <span class="checkbox__box"></span>
+          <span class="checkbox__label">
+            Согласен на обработку персональных данных
+          </span>
+        </label>
+
+        <button type="submit" class="btn contact-form__submit">
+          Получить скидку
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+
+        <p class="labyrinth-modal__form-status" data-labyrinth-win-status></p>
+      </form>
+    </div>
+
+    <!-- ============================ -->
+    <!-- ЭКРАН 4: ПРОИГРЫШ            -->
+    <!-- ============================ -->
+    <div class="labyrinth-modal__screen" data-labyrinth-screen="lose" hidden>
+      <p class="labyrinth-modal__lose-label">Вы сдались</p>
+      <h2 class="labyrinth-modal__title">Попробуйте ещё раз</h2>
+      <p class="labyrinth-modal__lead">
+        Скидка не получена — но вы можете начать заново.
+        Ловушки запоминаются, так что второй заход будет проще.
+      </p>
+
+      <div class="labyrinth-modal__controls">
+        <button
+          type="button"
+          class="btn"
+          data-labyrinth-reset
+        >
+          Играть заново
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+        <button
+          type="button"
+          class="labyrinth-modal__back"
+          data-labyrinth-back
+        >
+          Сменить уровень
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

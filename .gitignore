@@ -16,9 +16,12 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+project-export.txt
+export-project.ps1
 
 # macOS-specific files
 .DS_Store
 
 # jetbrains setting folder
 .idea/
+.vercel

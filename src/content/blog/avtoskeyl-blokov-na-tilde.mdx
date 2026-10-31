@@ -1,0 +1,333 @@
+---
+title: "Как сделать автоскейл стандартных блоков на Тильде"
+description: "Простой скрипт для автоскейла стандартных блоков Tilda. Добавляется в блок T123 и масштабирует контент под ширину экрана. Пошаговая инструкция."
+pubDate: 2026-11-02
+cover: "/images/blog/avtoskeyl-blokov-na-tilde-cover.png"
+coverAlt: "Автоскейл блоков на Тильде — скрипт в блоке T123"
+tags: ["tilda", "features", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Стандартные блоки Tilda** — удобная штука, но у них есть один недостаток: **отсутствие автоскейла**. То есть при изменении ширины экрана блок **не масштабируется** — контент либо сжимается, либо **обрезается по краям**.
+
+Решение — **небольшой скрипт**, который добавляется в блок **T123** и включает **автоматическое масштабирование** для нужных блоков.
+
+В этой статье — **готовая инструкция**: куда вставить скрипт, как назначить классы блокам и на что смотреть.
+
+## Что такое автоскейл и зачем он нужен
+
+**Автоскейл** — это **пропорциональное масштабирование** блока под ширину экрана. Когда пользователь открывает сайт на **большом мониторе** или **маленьком ноутбуке**, блок **автоматически** подстраивается под размер окна.
+
+**Проблема стандартных блоков Tilda:** они **фиксированной ширины** (обычно 1200px). Если экран **шире** — блок **не растягивается**. Если **уже** — контент **обрезается** или появляется **горизонтальный скролл**.
+
+**Что даёт автоскейл:**
+
+- **Адаптивность** — блок подстраивается под любую ширину
+- **Красивый вид** — нет обрезанного контента
+- **Меньше правок** — не нужно верстать под каждый размер
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Скрипт работает только со <strong>стандартными блоками Tilda</strong>. Для Zero Block автоскейл уже встроен — там ничего добавлять не нужно.</p>
+</div>
+
+## Пошаговая инструкция
+
+### Шаг 1. Добавьте стандартные блоки на страницу
+
+Откройте страницу в редакторе Tilda и добавьте **стандартные блоки**, которым нужен автоскейл. Например:
+
+- Блок с преимуществами
+- Галерея
+- Блок с текстом и картинкой
+- Тарифы
+
+**Что важно:** используйте **стандартные блоки из библиотеки Tilda**. Скрипт **не работает** с Zero Block.
+
+![Стандартный блок на странице Tilda](/images/blog/avtoskeyl-blokov-na-tilde-01.png)
+
+### Шаг 2. Добавьте блок T123
+
+В редакторе Tilda нажмите **«Добавить блок»** → категория **«Другое»** → **«HTML-код» (T123)**.
+
+![Блок T123 в редакторе Tilda](/images/blog/avtoskeyl-blokov-na-tilde-02.png)
+
+Разместите блок **внизу страницы** — чтобы он загружался последним и не мешал остальному.
+
+### Шаг 3. Вставьте скрипт
+
+Скопируйте код и вставьте его в блок T123:
+
+```html
+<script>
+(function() {
+  'use strict';
+
+  var config = {
+    minWidth: 320,
+    maxWidth: 5000,
+    defaultWidth: 1200,
+    breakpoints: [],
+    scaleCorrection: 0.94,
+    excludedBlocks: ['396', '131', '1093', '453'],
+    resizeDelay: 250
+  };
+
+  var breakpoints = config.breakpoints
+    .map(Number)
+    .filter(function(n) { return !isNaN(n); })
+    .sort(function(a, b) { return a - b; });
+
+  var clamp = function(v, min, max) {
+    return Math.min(Math.max(v, min), max);
+  };
+
+  var getBaseWidth = function(width) {
+    if (breakpoints.length === 0) return config.defaultWidth;
+    for (var i = 0; i < breakpoints.length; i++) {
+      if (width < breakpoints[i]) {
+        return i === 0 ? config.minWidth : breakpoints[i - 1];
+      }
+    }
+    return breakpoints[breakpoints.length - 1];
+  };
+
+  var calculateScale = function() {
+    var width = window.innerWidth;
+    if (width < config.minWidth || width > config.maxWidth) return 1;
+    var clamped = clamp(width, config.minWidth, config.maxWidth);
+    var base = getBaseWidth(clamped);
+    return (clamped / base) * config.scaleCorrection;
+  };
+
+  var getBlocks = function() {
+    var explicit = document.querySelectorAll('.uc-scale-on');
+    if (explicit.length > 0) return explicit;
+
+    var excluded = config.excludedBlocks;
+    return Array.prototype.slice.call(document.querySelectorAll('.t-rec'))
+      .filter(function(el) {
+        return excluded.indexOf(el.getAttribute('data-record-type')) === -1;
+      });
+  };
+
+  var rafId = null;
+  var lastScale = null;
+  var cachedBlocks = null;
+
+  var applyScale = function() {
+    var scale = calculateScale();
+    if (scale === lastScale && cachedBlocks) return;
+
+    lastScale = scale;
+    document.documentElement.style.setProperty('--zoom-factor', scale);
+
+    if (!cachedBlocks) cachedBlocks = getBlocks();
+
+    for (var i = 0; i < cachedBlocks.length; i++) {
+      var block = cachedBlocks[i];
+      if (block.hasAttribute('data-no-scale')) continue;
+      if (block.classList.contains('uc-scale-off')) continue;
+      block.style.zoom = scale;
+    }
+  };
+
+  var scheduleScale = function() {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(function() {
+      rafId = null;
+      applyScale();
+    });
+  };
+
+  var reset = function() {
+    cachedBlocks = null;
+    lastScale = null;
+    scheduleScale();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', reset, { once: true });
+  } else {
+    reset();
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(reset).catch(function() {});
+  }
+
+  var resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+      cachedBlocks = null;
+      scheduleScale();
+    }, config.resizeDelay);
+  }, { passive: true });
+
+  window.addEventListener('orientationchange', function() {
+    cachedBlocks = null;
+    scheduleScale();
+  }, { passive: true });
+})();
+</script>
+<style>
+:root { --zoom-factor: 1; }
+</style>
+```
+
+**Что делает скрипт:**
+
+- Считает **коэффициент масштабирования** на основе ширины окна
+- Применяет `zoom` к блокам с классом `.uc-scale-on`
+- Пропускает блоки с классом `.uc-scale-off` и стандартные исключения
+- Обновляется при **resize** и **повороте экрана**
+- Работает через **requestAnimationFrame** — не тормозит страницу
+
+### Шаг 4. Назначьте классы блокам
+
+**Откройте настройки блока**, которому нужен автоскейл. В поле **«Класс блока»** (внизу настроек) впишите:
+
+```
+uc-scale-on
+```
+
+![Назначение класса блоку в Tilda](/images/blog/avtoskeyl-blokov-na-tilde-03.png)
+
+**Повторите** для всех блоков, которые должны масштабироваться.
+
+### Шаг 5. Исключите блоки, если нужно
+
+Если какой-то блок **не должен масштабироваться** — назначьте ему класс:
+
+```
+uc-scale-off
+```
+
+**Зачем:** например, футер или блок с формой, где масштабирование **мешает**.
+
+## Настройки скрипта
+
+Если стандартные параметры не подходят — отредактируйте объект **`config`** в начале скрипта:
+
+```js
+var config = {
+  minWidth: 320,        // минимальная ширина окна
+  maxWidth: 5000,       // максимальная ширина окна
+  defaultWidth: 1200,   // базовая ширина Tilda
+  breakpoints: [],      // кастомные точки перелома
+  scaleCorrection: 0.94,// коррекция масштаба
+  excludedBlocks: ['396', '131', '1093', '453'], // исключённые типы блоков
+  resizeDelay: 250      // задержка при resize (мс)
+};
+```
+
+**Что можно изменить:**
+
+- **`defaultWidth`** — если у вас Tilda с **другой базовой шириной** (например, 960 или 1440), поменяйте значение
+- **`scaleCorrection`** — коэффициент коррекции. **0.94** — оптимально. Увеличивайте, если контент **не дотягивается до краёв**, уменьшайте — если **вылезает за пределы**
+- **`excludedBlocks`** — ID типов блоков, которые **не масштабируются** по умолчанию
+- **`resizeDelay`** — задержка перед пересчётом при изменении окна. **250 мс** — оптимально, чтобы не дёргалось
+
+<div class="callout">
+  <span class="callout__label">Совет</span>
+  <p>Если блоки масштабируются <strong>слишком сильно</strong> — уменьшите <code>scaleCorrection</code> до 0.9. Если <strong>не дотягивают</strong> — увеличьте до 0.98.</p>
+</div>
+
+## Как проверить результат
+
+1. **Опубликуйте страницу** — предпросмотр не покажет работу скрипта корректно
+2. **Откройте сайт** на компьютере
+3. **Измените ширину окна** — блоки должны плавно масштабироваться
+4. **Откройте на мобильном** — проверьте, что контент не обрезается
+
+**Что должно быть:**
+
+- При **увеличении окна** — блоки **растут пропорционально**
+- При **уменьшении** — **сжимаются**
+- **Никакого горизонтального скролла**
+- **Текст и картинки** остаются **пропорциональными**
+
+## Частые проблемы
+
+### Скрипт не работает вообще
+
+**Проверьте:**
+
+1. Скрипт вставлен в блок **T123** (не T123 внутри Zero Block)
+2. Скрипт **не обёрнут** в `<!-- -->` (не закомментирован)
+3. Класс `uc-scale-on` назначен **хотя бы одному** блоку
+
+### Блоки масштабируются, но текст размытый
+
+**Причина:** браузер использует `zoom`, который растрирует текст на некоторых разрешениях.
+
+**Решение:** это **нормально** для Tilda — изменить нельзя. Если критично — рассмотрите **CSS-transform: scale** вместо `zoom`. Но он даёт другой эффект.
+
+### На мобильных блоки слишком большие
+
+**Причина:** автоскейл работает **и на мобильных**, что может мешать.
+
+**Решение:** в блоке T123 добавьте **обёртку с медиазапросом**:
+
+```html
+<script>
+if (window.innerWidth >= 960) {
+  // ... весь код скрипта ...
+}
+</script>
+```
+
+**Что это даёт:** автоскейл **работает только на больших экранах**. На мобильных блоки остаются как есть.
+
+### Блоки дёргаются при изменении окна
+
+**Причина:** `resizeDelay` слишком маленький.
+
+**Решение:** увеличьте до **400–500 мс** в конфиге.
+
+## Итог
+
+**Автоскейл блоков на Тильде — это три шага:**
+
+1. **Добавить блоки** на страницу
+2. **Вставить скрипт** в блок T123
+3. **Назначить класс `uc-scale-on`** нужным блокам
+
+**Что даёт:**
+
+- **Пропорциональное масштабирование** блоков
+- **Адаптивность** под любую ширину
+- **Красивый вид** без обрезаний
+
+**Что можно настроить:** базовую ширину, коэффициент коррекции, исключённые блоки.
+
+**Скрипт работает во всех браузерах** — от Chrome до Safari. **Не требует библиотек** — только чистый JavaScript.
+
+## FAQ
+
+### На каких блоках работает автоскейл?
+
+**На стандартных блоках Tilda.** Для Zero Block автоскейл **встроен** — там ничего не нужно.
+
+### Что делать, если блоки слишком большие?
+
+**Уменьшите `scaleCorrection`** в конфиге скрипта. Например, до **0.88**.
+
+### Можно ли применять только к некоторым блокам?
+
+**Да.** Назначьте класс **`uc-scale-on`** только тем блокам, которые нужно масштабировать. Остальные **останутся** как есть.
+
+### Как исключить конкретный блок?
+
+**Назначьте класс `uc-scale-off`** блоку — он **не будет** масштабироваться, даже если общий скрипт активен.
+
+### Скрипт влияет на скорость сайта?
+
+**Минимально.** Он работает **через `requestAnimationFrame`**, не блокирует загрузку и не создаёт **лишних запросов** к серверу.
+
+---
+
+**Хотите другие фишки для Tilda?** Читайте [Как сделать плавный скролл на Тильде](/blog/kak-sdelat-plavnyj-skroll-na-tilde) или [SEO на Tilda](/blog/seo-na-tilde).

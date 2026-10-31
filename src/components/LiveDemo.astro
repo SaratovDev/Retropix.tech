@@ -1,0 +1,76 @@
+---
+interface Props {
+  /** HTML-разметка демо */
+  html: string;
+  /** CSS-стили демо */
+  css?: string;
+  /** Заголовок над демо (по умолчанию "Пример") */
+  title?: string;
+  /** Высота в пикселях (по умолчанию 300) */
+  height?: number;
+}
+
+const {
+  html,
+  css = '',
+  title = 'Пример',
+  height = 300,
+} = Astro.props;
+
+// Объединяем html и css в один документ для iframe
+const srcDoc = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #0A0A0A;
+    background: #FFFFFF;
+    padding: 20px;
+  }
+  ${css}
+</style>
+</head>
+<body>
+${html}
+</body>
+</html>
+`;
+
+// Код, который попадёт в буфер при клике «Копировать»
+const codeToCopy = `<!-- HTML -->
+${html}
+
+${css ? `/* CSS */\n${css}` : ''}`.trim();
+---
+
+<div class="live-demo" data-live-demo>
+  <div class="live-demo__header">
+    <span class="live-demo__title">{title}</span>
+    <button
+      type="button"
+      class="live-demo__copy"
+      data-live-demo-copy
+      aria-label="Копировать код"
+    >
+      Копировать
+    </button>
+  </div>
+
+  <div class="live-demo__body" style={`height: ${height}px;`}>
+    <iframe
+      class="live-demo__iframe"
+      srcdoc={srcDoc}
+      title={title}
+      loading="lazy"
+      sandbox="allow-same-origin"
+    ></iframe>
+  </div>
+
+  <textarea class="live-demo__source" hidden>{codeToCopy}</textarea>
+</div>

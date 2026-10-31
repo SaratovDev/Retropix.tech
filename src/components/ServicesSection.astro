@@ -1,0 +1,72 @@
+---
+import { SERVICE_GROUPS } from '../consts';
+
+interface Props {
+  /** 'full' — как на /services (с «Что входит»), 'short' — как на главной */
+  variant?: 'full' | 'short';
+  /** Показывать ли кнопку «Все услуги» под секцией */
+  showAllLink?: boolean;
+}
+
+const { variant = 'full', showAllLink = false } = Astro.props;
+---
+
+<div class={`services-section services-section--${variant}`}>
+  {SERVICE_GROUPS.map((service) => (
+    <article class="service" id={variant === 'full' ? service.id : undefined}>
+      <div class="service__head">
+        <span class="service__number">{service.number}</span>
+        <h3 class="service__title">{service.title}</h3>
+      </div>
+
+      <p class="service__description">{service.description}</p>
+
+      <div class={`service__grid service__grid--${variant}`}>
+        {variant === 'full' && (
+          <div class="service__includes">
+            <h4 class="service__subtitle">Что входит</h4>
+            <ul class="service__includes-list">
+              {service.includes.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div class="service__prices">
+          {variant === 'full' && (
+            <h4 class="service__subtitle">Цены</h4>
+          )}
+          <ul class="price-list">
+            {service.prices.map((p) => (
+              <li class="price-row">
+                <span class="price-row__label">{p.label}</span>
+                <span class="price-row__value" data-tooltip={p.tooltip}>
+                  {p.price}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            class="btn service__order"
+            data-order-service={service.title}
+          >
+            Заказать
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  ))}
+
+  {showAllLink && (
+    <div class="services-section__footer">
+      <a href="/services" class="btn">
+        Все услуги и цены
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  )}
+</div>

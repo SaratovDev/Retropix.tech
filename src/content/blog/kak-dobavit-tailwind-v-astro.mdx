@@ -1,0 +1,311 @@
+---
+title: "Как добавить Tailwind в Astro: пошаговое руководство"
+description: "Разбираю, как подключить Tailwind CSS к Astro: установка, настройка, тёмная тема, оптимизация и типичные ошибки. С примерами кода."
+pubDate: 2026-10-31
+cover: "/images/blog/kak-dobavit-tailwind-v-astro-cover.png"
+coverAlt: "Tailwind CSS в проекте Astro"
+tags: ["astro", "features", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Tailwind CSS** — это utility-first CSS-фреймворк. Вместо того чтобы писать отдельные стили для каждого элемента, вы комбинируете **готовые классы** прямо в HTML: `text-xl`, `bg-black`, `p-4`, `rounded-lg`.
+
+В **Astro** Tailwind подключается **за одну команду** — официальная интеграция делает всё сама. Разберём, как это работает, какие есть настройки и на что смотреть.
+
+## Что вы узнаете
+
+- [Что такое Tailwind и зачем он в Astro](#что-такое-tailwind)
+- [Установка Tailwind в Astro](#установка)
+- [Структура файлов](#структура-файлов)
+- [Использование в компонентах](#использование)
+- [Тёмная тема в Tailwind](#тёмная-тема)
+- [Оптимизация CSS](#оптимизация)
+- [Частые ошибки](#частые-ошибки)
+
+## Что такое Tailwind
+
+**Tailwind** — CSS-фреймворк, где стили задаются **классами прямо в HTML**. Например:
+
+```html
+<button class="px-6 py-3 bg-black text-white font-bold hover:bg-orange-500">
+  Кнопка
+</button>
+```
+
+**Плюсы:**
+
+- **Быстро** — не нужно придумывать имена классов
+- **Предсказуемо** — один класс = одно свойство
+- **Консистентно** — все отступы кратны 4px, все цвета из палитры
+- **Маленький итоговый CSS** — Tailwind удаляет **неиспользованные** классы при сборке
+
+**Минусы:**
+
+- **Раздутый HTML** — много классов в разметке
+- **Порог входа** — нужно выучить классы
+
+**Почему Tailwind хорош с Astro:** Astro **не навязывает** CSS-подход, но Tailwind **отлично вписывается** — стили работают на уровне компонентов, итоговый CSS минимален, никакого runtime.
+
+## Установка
+
+**Официальная интеграция** ставится **одной командой**:
+
+```bash
+npx astro add tailwind
+```
+
+**Что произойдёт:**
+
+1. Установится `@tailwindcss/vite` и `tailwindcss`
+2. Автоматически обновится `astro.config.mjs`
+3. Создастся файл `src/styles/global.css` с `@import "tailwindcss"`
+4. Этот файл подключится во всех `.astro`-компонентах
+
+**Проверьте `astro.config.mjs` — там должно быть:**
+
+```js
+import { defineConfig } from 'astro/config';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  vite: {
+    plugins: [tailwindcss()],
+  },
+});
+```
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Начиная с Tailwind 4 и Astro 5, интеграция работает через <strong>Vite-плагин</strong>, а не через <code>@astrojs/tailwind</code>. Старый способ устарел.</p>
+</div>
+
+## Структура файлов
+
+После установки структура проекта выглядит так:
+
+```
+src/
+├── styles/
+│   └── global.css      ← сюда импортируется Tailwind
+├── pages/
+│   └── index.astro
+└── components/
+```
+
+**Файл `src/styles/global.css`:**
+
+```css
+@import "tailwindcss";
+```
+
+**Как подключить глобальные стили:** в `src/layouts/BaseLayout.astro`:
+
+```astro
+---
+import '../styles/global.css';
+---
+```
+
+**Всё.** Теперь Tailwind доступен во всех компонентах.
+
+## Использование
+
+**В `.astro`-компонентах** просто добавляйте классы:
+
+```astro
+---
+// src/components/Card.astro
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<article class="p-6 border border-black bg-white">
+  <h2 class="text-2xl font-black mb-2">{title}</h2>
+  <p class="text-gray-600">{description}</p>
+</article>
+```
+
+**Что здесь:**
+
+- **`p-6`** — padding 24px со всех сторон
+- **`border border-black`** — рамка 1px чёрная
+- **`text-2xl`** — размер шрифта 24px
+- **`font-black`** — максимальная жирность
+- **`text-gray-600`** — серый цвет
+
+**Использование компонента:**
+
+```astro
+---
+import Card from '../components/Card.astro';
+---
+
+<div class="grid grid-cols-3 gap-4">
+  <Card title="Первая" description="Описание первой" />
+  <Card title="Вторая" description="Описание второй" />
+  <Card title="Третья" description="Описание третьей" />
+</div>
+```
+
+**Разберём:**
+
+- **`grid`** — `display: grid`
+- **`grid-cols-3`** — три колонки
+- **`gap-4`** — отступ между элементами 16px
+
+## Тёмная тема в Tailwind
+
+**Tailwind 4** поддерживает **два режима тёмной темы**:
+
+### Режим «media» (по системным настройкам)
+
+По умолчанию используется **системная тема**:
+
+```html
+<div class="bg-white dark:bg-black">
+  Автоматически меняет фон
+</div>
+```
+
+**Что делает:** фон белый на светлой теме, чёрный — на тёмной. **Без кнопки переключения** — работает через `prefers-color-scheme`.
+
+### Режим «class» (по классу на `<html>`)
+
+Если хотите **кнопку переключения** — включите **class-режим** в `global.css`:
+
+```css
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
+**Теперь** добавьте класс `dark` на `<html>` — и все `dark:` классы сработают:
+
+```html
+<html class="dark">
+  <body>
+    <div class="bg-white dark:bg-black">...</div>
+  </body>
+</html>
+```
+
+**Как это работает с кнопкой:** JavaScript переключает класс `dark` на `<html>`, Tailwind **мгновенно** применяет тёмные стили.
+
+<div class="callout">
+  <span class="callout__label">Порядок важен</span>
+  <p>Класс <strong><code>dark</code></strong> должен стоять на <strong><code>&lt;html&gt;</code></strong>, не на <strong><code>&lt;body&gt;</code></strong>. Иначе <code>dark:</code> сработает не на всех элементах.</p>
+</div>
+
+## Оптимизация CSS
+
+**Tailwind 4 работает иначе, чем 3-й.** Он использует **автоматическое сканирование** — ищет классы в файлах проекта и генерирует **только использованные** стили.
+
+**Ничего настраивать не нужно.** Но есть нюансы:
+
+**1. Tailwind сканирует файлы проекта** — `.astro`, `.mdx`, `.html`, `.jsx`, `.tsx`. Если используете **нестандартные расширения**, добавьте их в `global.css`:
+
+```css
+@source "../content/**/*.mdx";
+```
+
+**2. Динамические классы не находятся.** Если класс формируется **шаблонной строкой**:
+
+```astro
+<div class={`text-${color}-500`}>...</div>
+```
+
+Tailwind **не сможет** найти `text-red-500`. **Решение:** используйте **полные классы** в коде:
+
+```astro
+const classes = {
+  red: 'text-red-500',
+  blue: 'text-blue-500',
+};
+<div class={classes[color]}>...</div>
+```
+
+## Частые ошибки
+
+### Ошибка 1: классы не применяются
+
+**Причина:** Tailwind не видит файл с классами.
+
+**Решение:** проверьте, что файл **в `src/`** или добавьте путь в `@source`.
+
+### Ошибка 2: `dark:` не работает
+
+**Причина:** класс `dark` стоит **на `<body>`**, а не на `<html>`.
+
+**Решение:** перенесите на `<html>`.
+
+### Ошибка 3: огромный CSS
+
+**Причина:** Tailwind **не удаляет неиспользованные** классы — обычно из-за **динамических классов** через конкатенацию.
+
+**Решение:** используйте **полные классы** в коде. Никаких `text-${color}-500`.
+
+### Ошибка 4: конфликт с обычным CSS
+
+**Причина:** ваши стили из `prose.css` **перебиваются** Tailwind.
+
+**Решение:** используйте `@apply` для объединения или **увеличьте специфичность** селектора.
+
+## Итог
+
+**Tailwind в Astro — это 3 шага:**
+
+1. **`npx astro add tailwind`** — установка в одну команду
+2. **Импорт `global.css`** в layout
+3. **Использование классов** в компонентах
+
+**Ключевые плюсы:**
+
+- **Быстрая разработка** — не нужно писать CSS
+- **Маленький итоговый CSS** — Tailwind 4 удаляет всё неиспользуемое
+- **Тёмная тема из коробки** — через `dark:` варианты
+- **Никакого runtime** — только CSS при сборке
+
+**Когда использовать:** для проектов с **плотным UI**, лендингов, дашбордов. Если проект — **текстовый блог**, обычный CSS может быть проще.
+
+## FAQ
+
+### Tailwind обязателен для Astro?
+
+**Нет.** Astro **не навязывает** CSS-подход. Вы можете писать **обычный CSS**, использовать **Sass**, **CSS Modules** или **Tailwind**. Каждый выбирает под задачу.
+
+### Как перейти с Tailwind 3 на 4 в Astro?
+
+**Удалите** `@astrojs/tailwind`, установите **`@tailwindcss/vite`** и добавьте плагин в `astro.config.mjs`. Обновите `global.css` до `@import "tailwindcss"`. Конфиг через `tailwind.config.js` больше **не обязателен**.
+
+### Можно ли использовать Tailwind вместе с обычным CSS?
+
+**Да.** Tailwind и ваши стили **не конфликтуют**, если не использовать одинаковые селекторы. Tailwind-классы имеют **низкую специфичность**, поэтому ваши стили могут их **перебить**.
+
+### Как настроить кастомные цвета?
+
+**В Tailwind 4** — через **`@theme`** в `global.css`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #F36223;
+  --color-dark: #0A0A0A;
+}
+```
+
+**Теперь** доступны классы `bg-brand`, `text-dark` и т.д.
+
+### Как использовать Tailwind с MDX-статьями?
+
+**Установите** `@tailwindcss/typography` — плагин для типографики. Подключите в `global.css` через `@plugin "@tailwindcss/typography"`. Класс `prose` применит **красивые стили к Markdown**.
+
+---
+
+**Хотите разобраться с тёмной темой на Astro?** Читайте [Как сделать тёмную тему на Astro](/blog/kak-sdelat-temnuyu-temu-na-astro). А если только начинаете — [Как создать сайт на Astro JS с нуля](/blog/kak-sozdat-sajt-na-astro).

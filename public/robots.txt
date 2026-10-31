@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Служебные страницы закрываем от индексации
+Disallow: /404
+Disallow: /thanks
+
+Sitemap: https://retropix.tech/sitemap-index.xml

@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE } from '../consts';
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: `Таблица лидеров — ${SITE.name}`,
+  description: 'Рейтинг игроков в Мемори и Слепом лабиринте. Полная таблица результатов по времени.',
+  url: new URL('/leaderboard', Astro.site).href,
+  inLanguage: SITE.lang,
+};
+---
+
+<BaseLayout
+  title="Таблица лидеров"
+  description="Рейтинг игроков в Мемори и Слепом лабиринте. Полная таблица результатов по времени — от лучших к худшим."
+  schema={schema}
+>
+  <section class="leaderboard">
+    <div class="container">
+      <Breadcrumbs items={[{ label: 'Таблица лидеров' }]} />
+
+      <h1 class="leaderboard__title">Таблица лидеров</h1>
+      <p class="leaderboard__lead">
+        Полная таблица результатов в играх. Быстрее — выше. Звания выдаются по времени прохождения.
+      </p>
+
+      <div class="leaderboard__my-rank" data-leaderboard-my-rank hidden>
+        <span class="leaderboard__my-rank-label">Ваше место</span>
+        <span class="leaderboard__my-rank-value" data-leaderboard-my-rank-value>—</span>
+        <span class="leaderboard__my-rank-note" data-leaderboard-my-rank-note></span>
+      </div>
+
+      <div class="leaderboard__tabs" data-leaderboard-tabs>
+        <button
+          type="button"
+          class="leaderboard__tab is-active"
+          data-leaderboard-tab="memory"
+        >
+          Мемори
+        </button>
+        <button
+          type="button"
+          class="leaderboard__tab"
+          data-leaderboard-tab="labyrinth-4x4"
+        >
+          Лабиринт 4×4
+        </button>
+        <button
+          type="button"
+          class="leaderboard__tab"
+          data-leaderboard-tab="labyrinth-6x6"
+        >
+          Лабиринт 6×6
+        </button>
+        <button
+          type="button"
+          class="leaderboard__tab"
+          data-leaderboard-tab="labyrinth-8x8"
+        >
+          Лабиринт 8×8
+        </button>
+      </div>
+
+      <div class="leaderboard__content" data-leaderboard-content>
+        <p class="leaderboard__empty">Загрузка...</p>
+      </div>
+
+      <div class="leaderboard__pagination" data-leaderboard-pagination hidden>
+        <button
+          type="button"
+          class="leaderboard__page-btn"
+          data-leaderboard-prev
+          aria-label="Предыдущая страница"
+        >
+          ← Назад
+        </button>
+
+        <span class="leaderboard__page-info" data-leaderboard-page-info>
+          Стр. 1
+        </span>
+
+        <button
+          type="button"
+          class="leaderboard__page-btn"
+          data-leaderboard-next
+          aria-label="Следующая страница"
+        >
+          Вперёд →
+        </button>
+      </div>
+
+      <div class="leaderboard__footer">
+        <a href="/#games" class="btn">
+          Играть и попасть в топ
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

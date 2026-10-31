@@ -1,43 +1,36 @@
-# Astro Starter Kit: Minimal
+# retropix.tech — блог о веб-разработке и разработка сайтов
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Личный сайт Вадима Шабанова: блог о Tilda, WordPress, HTML+CSS, SEO и Astro JS + услуги разработки + обучающие игры с таблицей лидеров.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+**Стек:** Astro 7, MDX, Supabase (лидерборд), Resend (email), Vercel.
 
-## 🚀 Project Structure
+---
 
-Inside of your Astro project, you'll see the following folders and files:
+## Быстрый старт
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+```bash
+npm install
+cp .env.example .env
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+npm run dev
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+src/
+├── content/blog/        # статьи в Markdown/MDX
+├── pages/               # роутинг (файлы = URL)
+│   ├── index.astro      # главная
+│   ├── blog/            # список + статьи + теги
+│   ├── services.astro   # услуги
+│   ├── about.astro      # обо мне
+│   ├── contact.astro    # контакты + форма
+│   ├── learn.astro      # обучение
+│   ├── leaderboard.astro
+│   ├── api/lead.ts      # отправка заявок (Resend)
+│   └── rss.xml.ts       # RSS-фид
+├── components/          # переиспользуемые блоки
+├── layouts/BaseLayout.astro
+├── scripts/             # клиентский JS (игры, формы, слайдер)
+├── lib/                 # Supabase, лидерборд, rate-limit
+└── styles/              # CSS (tokens, reset, base, layout, components, prose)
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Лицензия
+Код — MIT. Контент (тексты статей, фото) — © Вадим Шабанов, все права защищены. Копирование без разрешения запрещено.

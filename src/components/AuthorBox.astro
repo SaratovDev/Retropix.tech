@@ -1,0 +1,33 @@
+---
+import { AUTHOR } from '../consts';
+
+interface Props {
+  date?: Date;
+}
+
+const { date } = Astro.props;
+
+const formattedDate = date
+  ? date.toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  : null;
+---
+
+<div class="author-box">
+  <div class="author-box__avatar" aria-hidden="true">
+    <!-- Плейсхолдер: первая буква имени. Заменим на фото позже. -->
+    <span>{AUTHOR.name.charAt(0)}</span>
+  </div>
+
+  <div class="author-box__info">
+    <p class="author-box__name">{AUTHOR.name}</p>
+    {formattedDate && (
+      <time class="author-box__date" datetime={date!.toISOString()}>
+        {formattedDate}
+      </time>
+    )}
+  </div>
+</div>

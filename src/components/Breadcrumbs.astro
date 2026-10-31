@@ -1,0 +1,50 @@
+---
+interface Crumb {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: Crumb[];
+}
+
+const { items } = Astro.props;
+
+// Первый элемент всегда главная
+const crumbs: Crumb[] = [{ label: 'Главная', href: '/' }, ...items];
+
+// JSON-LD разметка BreadcrumbList
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: crumbs.map((crumb, i) => {
+    const listItem: Record<string, unknown> = {
+      '@type': 'ListItem',
+      position: i + 1,
+      name: crumb.label,
+    };
+
+    if (crumb.href) {
+      listItem.item = new URL(crumb.href, Astro.site).href;
+    }
+
+    return listItem;
+  }),
+};
+---
+
+<nav class="breadcrumbs" aria-label="Хлебные крошки">
+  <ol class="breadcrumbs__list">
+    {crumbs.map((crumb, i) => (
+      <li class="breadcrumbs__item">
+        {crumb.href && i < crumbs.length - 1 ? (
+          <a href={crumb.href} class="breadcrumbs__link">{crumb.label}</a>
+        ) : (
+          <span class="breadcrumbs__current" aria-current="page">{crumb.label}</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

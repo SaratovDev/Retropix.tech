@@ -1,0 +1,50 @@
+<script>
+  import Lenis from 'lenis';
+
+  const lenis = new Lenis({
+    duration: 1.5,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+  });
+
+  function raf(time: number) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // Отключаем Lenis, пока открыта любая модалка
+  const observer = new MutationObserver(() => {
+    const anyModalOpen = document.querySelector(
+      '.game-modal:not([hidden]), .labyrinth-modal:not([hidden]), .sticky-modal:not([hidden]), .modal:not([hidden]), .case-modal:not([hidden])'
+    );
+    if (anyModalOpen) {
+      lenis.stop();
+    } else {
+      lenis.start();
+    }
+  });
+
+  observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
+
+   // Плавная прокрутка к якорю при смене hash
+ function scrollToHash() {
+  if (!window.location.hash) return;
+
+  const target = document.querySelector<HTMLElement>(window.location.hash);
+  if (target) {
+    setTimeout(() => {
+      lenis.scrollTo(target, {
+        offset: -80,
+        duration: 1.2,
+      });
+    }, 50);
+  }
+}
+
+    // При загрузке страницы, если есть hash
+  scrollToHash();
+
+    // При клике по внутренним ссылкам с hash
+  window.addEventListener('hashchange', scrollToHash);
+</script>

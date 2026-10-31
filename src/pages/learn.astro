@@ -1,0 +1,329 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE, AUTHOR, LEARN_SKILLS, LEARN_COURSE, CATEGORIES } from '../consts';
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: SITE.name,
+    url: new URL('/learn', Astro.site).href,
+    description: 'Обучение созданию сайтов: Tilda, WordPress, HTML+CSS, SEO, Astro JS.',
+    founder: {
+      '@type': 'Person',
+      name: AUTHOR.name,
+      jobTitle: AUTHOR.jobTitle,
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: LEARN_COURSE.title,
+    description: LEARN_COURSE.description,
+    provider: {
+      '@type': 'Person',
+      name: AUTHOR.name,
+    },
+    inLanguage: SITE.lang,
+  },
+];
+---
+
+<BaseLayout
+  title="Обучение созданию сайтов — Tilda, WordPress, HTML+CSS"
+  description="Научитесь делать сайты сами: Tilda, WordPress, HTML+CSS, SEO, Astro JS. Бесплатные статьи, индивидуальное обучение, курс Web Guru. Практика, без воды."
+  schema={schema}
+>
+  <!-- ============================================ -->
+  <!-- INTRO                                        -->
+  <!-- ============================================ -->
+  <section class="learn-page">
+    <div class="container">
+      <Breadcrumbs items={[{ label: 'Обучение' }]} />
+
+      <span class="label learn-page__label">Обучение</span>
+
+      <h1 class="learn-page__title">
+        Научитесь делать сайты сами — от нуля до первого проекта
+      </h1>
+
+      <p class="learn-page__lead">
+        Я не обещаю «стать миллионером за месяц». Но я знаю, как
+        провести человека от полного нуля до первого сайта — и делюсь
+        этим опытом бесплатно. А если хотите быстрее и с наставником —
+        есть индивидуальное обучение.
+      </p>
+
+      <div class="learn-page__actions">
+        <a href="#formats" class="btn">
+          Выбрать формат
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/blog/tag/beginners" class="btn">
+          Читать бесплатно
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- НАВЫКИ                                       -->
+  <!-- ============================================ -->
+  <section class="learn-skills-section">
+    <div class="container">
+      <span class="label learn-skills-section__label">Что можно освоить</span>
+      <h2 class="learn-skills-section__title">
+        Практические навыки, которые сразу применимы в работе
+      </h2>
+
+      <div class="learn-skills-grid">
+        {LEARN_SKILLS.map((skill) => (
+          <article class="learn-skill">
+            <span class="learn-skill__number">{skill.number}</span>
+            <h3 class="learn-skill__title">{skill.title}</h3>
+            <p class="learn-skill__description">{skill.description}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- ФОРМАТЫ ОБУЧЕНИЯ                             -->
+  <!-- ============================================ -->
+  <section class="learn-formats" id="formats">
+    <div class="container">
+      <span class="label learn-formats__label">Форматы</span>
+      <h2 class="learn-formats__title">
+        Три способа учиться — выбирайте под свою задачу
+      </h2>
+
+      <div class="learn-formats__grid">
+        <!-- Формат 1: Бесплатные статьи -->
+        <article class="learn-format">
+          <span class="learn-format__badge">Бесплатно</span>
+          <h3 class="learn-format__title">Статьи в блоге</h3>
+          <p class="learn-format__description">
+            30+ подробных статей по Tilda, WordPress, HTML+CSS, SEO и Astro JS.
+            Каждая — с примерами, демо и разбором реальных задач.
+            Начните с «Пути новичка» на главной.
+          </p>
+          <ul class="learn-format__list">
+            <li>Без регистрации и оплаты</li>
+            <li>Пошаговые инструкции</li>
+            <li>Живые примеры кода</li>
+            <li>Обновляется регулярно</li>
+          </ul>
+          <a href="/blog" class="btn learn-format__btn">
+            Читать блог
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+        </article>
+
+        <!-- Формат 2: Индивидуальное обучение -->
+        <article class="learn-format learn-format--featured">
+          <span class="learn-format__badge">Индивидуально</span>
+          <h3 class="learn-format__title">Личное обучение</h3>
+          <p class="learn-format__description">
+            Один на один. Разбираем именно вашу задачу: разбираем
+            текущий уровень, ставим цель, идём по плану. Подходит тем,
+            кто хочет быстрее и с обратной связью.
+          </p>
+          <ul class="learn-format__list">
+            <li>Программа под ваш уровень</li>
+            <li>Практика на реальных задачах</li>
+            <li>Разбор домашних заданий</li>
+            <li>Помощь с первым проектом</li>
+          </ul>
+          <a href="/contact" class="btn learn-format__btn">
+            Обсудить обучение
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+        </article>
+
+        <!-- Формат 3: Курс (скоро) -->
+        <article class="learn-format">
+          <span class="learn-format__badge">{LEARN_COURSE.status}</span>
+          <h3 class="learn-format__title">{LEARN_COURSE.title}</h3>
+          <p class="learn-format__description">
+            {LEARN_COURSE.description}. Структурированная программа
+            с уроками, практикой и личным кабинетом. Подпишитесь на
+            обновления — сообщу, когда курс будет готов.
+          </p>
+          <ul class="learn-format__list">
+            <li>Структурированная программа</li>
+            <li>Видеоуроки и практика</li>
+            <li>Личный кабинет с прогрессом</li>
+            <li>Доступ навсегда</li>
+          </ul>
+          <a href="#subscribe-course" class="btn learn-format__btn">
+            Узнать о запуске
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- ПУТЬ НОВИЧКА — КРАТКО                        -->
+  <!-- ============================================ -->
+  <section class="learn-path">
+    <div class="container">
+      <span class="label learn-path__label">Путь новичка</span>
+      <h2 class="learn-path__title">
+        С чего начать, если вы никогда не делали сайты
+      </h2>
+
+      <ol class="learn-path__list">
+        <li class="learn-path__step">
+          <span class="learn-path__number">01</span>
+          <div>
+            <h3 class="learn-path__step-title">Разберитесь с основами</h3>
+            <p class="learn-path__step-text">
+              HTML, CSS, DOM — база, без которой некуда двигаться.
+              Читайте <a href="/blog/chto-takoe-dom">«Что такое DOM»</a>
+              и <a href="/blog/kak-podklyuchit-css-k-html">«Как подключить CSS к HTML»</a>.
+            </p>
+          </div>
+        </li>
+
+        <li class="learn-path__step">
+          <span class="learn-path__number">02</span>
+          <div>
+            <h3 class="learn-path__step-title">Выберите платформу</h3>
+            <p class="learn-path__step-text">
+              Tilda — для быстрого запуска. WordPress — для гибкости.
+              Сравнение — в статье
+              <a href="/blog/tilda-ili-wordpress">«Tilda или WordPress»</a>.
+            </p>
+          </div>
+        </li>
+
+        <li class="learn-path__step">
+          <span class="learn-path__number">03</span>
+          <div>
+            <h3 class="learn-path__step-title">Создайте первый сайт</h3>
+            <p class="learn-path__step-text">
+              Пошагово: от регистрации до публикации.
+              Читайте <a href="/blog/kak-sozdat-sajt-na-tilde">«Как создать сайт на Tilda»</a>.
+            </p>
+          </div>
+        </li>
+
+        <li class="learn-path__step">
+          <span class="learn-path__number">04</span>
+          <div>
+            <h3 class="learn-path__step-title">Подключите домен и SSL</h3>
+            <p class="learn-path__step-text">
+              Свой адрес + защита.
+              <a href="/blog/kak-podklyuchit-domen-k-sajtu-na-tilde">Домен</a> и
+              <a href="/blog/kak-podklyuchit-ssl-sertifikat-k-sajtu-na-tilde">SSL</a>.
+            </p>
+          </div>
+        </li>
+
+        <li class="learn-path__step">
+          <span class="learn-path__number">05</span>
+          <div>
+            <h3 class="learn-path__step-title">Настройте аналитику</h3>
+            <p class="learn-path__step-text">
+              Чтобы понимать, кто приходит.
+              <a href="/blog/kak-podklyuchit-yandeks-metriku-k-tilde">Яндекс.Метрика на Tilda</a>.
+            </p>
+          </div>
+        </li>
+
+        <li class="learn-path__step">
+          <span class="learn-path__number">06</span>
+          <div>
+            <h3 class="learn-path__step-title">Займитесь SEO</h3>
+            <p class="learn-path__step-text">
+              Базовые настройки, чтобы сайт нашли.
+              <a href="/blog/seo-na-tilde">SEO на Tilda</a>.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="learn-path__footer">
+        <a href="/blog/tag/beginners" class="btn">
+          Все статьи для новичков
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- ПОДПИСКА НА КУРС                             -->
+  <!-- ============================================ -->
+  <section class="learn-subscribe" id="subscribe-course">
+    <div class="container">
+      <div class="learn-subscribe__box">
+        <span class="label learn-subscribe__label">Курс в разработке</span>
+        <h2 class="learn-subscribe__title">
+          Хотите узнать о запуске курса первым?
+        </h2>
+        <p class="learn-subscribe__lead">
+          Одно письмо, когда курс будет готов. Без спама, отписка в один клик.
+        </p>
+
+        <form class="learn-subscribe__form" action="#" method="POST" data-contact-form>
+          <input type="hidden" name="source" value="course-subscribe" />
+          <input type="hidden" name="type" value="course-waitlist" />
+          <input type="hidden" name="name" value="Подписчик курса" />
+
+          <div class="learn-subscribe__input-row">
+            <input
+              type="email"
+              name="email"
+              class="field__input learn-subscribe__input"
+              placeholder="you@example.com"
+              required
+              aria-label="Email"
+              maxlength="120"
+            />
+            <button type="submit" class="btn learn-subscribe__submit">
+              Подписаться
+              <span class="btn__arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <label class="checkbox learn-subscribe__consent">
+            <input type="checkbox" name="consent" required />
+            <span class="checkbox__box"></span>
+            <span class="checkbox__label">
+              Согласен на обработку персональных данных
+            </span>
+          </label>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- CTA                                          -->
+  <!-- ============================================ -->
+  <section class="learn-cta">
+    <div class="container">
+      <h2 class="learn-cta__title">Не уверены, с чего начать?</h2>
+      <p class="learn-cta__lead">
+        Напишите мне — разберём вашу ситуацию и подберём формат.
+        Бесплатно, 30 минут.
+      </p>
+      <div class="learn-cta__actions">
+        <a href="/contact" class="btn">
+          Получить консультацию
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/blog" class="btn">
+          Читать блог
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

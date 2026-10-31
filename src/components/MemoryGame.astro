@@ -1,0 +1,179 @@
+<!-- Модалка с игрой «Мемори» -->
+
+<div class="game-modal" data-game-modal hidden>
+  <div class="game-modal__overlay" data-game-close></div>
+
+  <div
+    class="game-modal__content"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="game-title"
+  >
+    <button
+      type="button"
+      class="game-modal__close"
+      aria-label="Закрыть игру"
+      data-game-close
+    >✕</button>
+
+    <!-- ============================ -->
+    <!-- ЭКРАН 1: ИГРОВОЕ ПОЛЕ         -->
+    <!-- ============================ -->
+    <div class="game-modal__screen" data-game-screen="playing">
+      <h2 class="game-modal__title" id="game-title">
+        Найдите все пары
+      </h2>
+
+      <div class="game-modal__stats">
+        <span class="game-stat">
+          <span class="game-stat__label">Ошибки</span>
+          <span class="game-stat__value">
+            <span data-game-errors>0</span> / 4
+          </span>
+        </span>
+        <span class="game-stat">
+          <span class="game-stat__label">Найдено</span>
+          <span class="game-stat__value">
+            <span data-game-found>0</span> / 6
+          </span>
+        </span>
+      </div>
+
+      <div class="game-board" data-game-board>
+        {/* Карточки генерируются JS */}
+      </div>
+
+      <button
+        type="button"
+        class="btn game-modal__reset"
+        data-game-reset
+      >
+        Начать заново
+      </button>
+    </div>
+
+<!-- ============================ -->
+<!-- ЭКРАН 2: ПОБЕДА + ФОРМА       -->
+<!-- ============================ -->
+<div class="game-modal__screen" data-game-screen="win" hidden>
+  <p class="game-modal__win-label">Победа!</p>
+  <h2 class="game-modal__title">🎉 Вы выиграли скидку 15%</h2>
+
+  <!-- Инфо о времени и лидерборде -->
+  <p class="game-modal__win-note">
+    Ваше время: <strong data-memory-result-time>00:00</strong>
+  </p>
+  <p class="game-modal__win-hint">
+    Отправьте форму — и ваш результат автоматически попадёт в таблицу лидеров.
+  </p>
+
+  <!-- Форма заявки -->
+  <form class="contact-form game-modal__form" action="#" method="POST" data-contact-form data-game-win-form>
+    <input type="hidden" name="discount" value="15" data-discount-field />
+    <input type="hidden" name="source" value="memory-game" />
+
+    <div class="field">
+      <label for="game-name" class="field__label">
+        Имя (попадёт в таблицу лидеров) <span class="field__required">*</span>
+      </label>
+      <input
+        type="text"
+        id="game-name"
+        name="name"
+        class="field__input"
+        required
+        maxlength="30"
+        data-leaderboard-nickname
+      />
+    </div>
+
+    <fieldset class="field field--radio">
+      <legend class="field__label">
+        Способ связи <span class="field__required">*</span>
+      </legend>
+      <div class="radio-group">
+        <label class="radio">
+          <input type="radio" name="contact-method" value="telegram" checked data-method />
+          <span class="radio__box"></span>
+          <span class="radio__label">Telegram</span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="contact-method" value="phone" data-method />
+          <span class="radio__box"></span>
+          <span class="radio__label">Телефон</span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="contact-method" value="max" data-method />
+          <span class="radio__box"></span>
+          <span class="radio__label">MAX</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="field">
+      <label for="game-contact" class="field__label" data-value-label>
+        Ваш ник или телефон в Telegram
+      </label>
+      <input
+        type="text"
+        id="game-contact"
+        name="contact"
+        class="field__input"
+        placeholder="@username или +7..."
+        required
+        data-value-input
+      />
+    </div>
+
+    <div class="field">
+      <label for="game-message" class="field__label">
+        Какая услуга интересует? <span class="field__optional">(опционально)</span>
+      </label>
+      <textarea
+        id="game-message"
+        name="message"
+        class="field__input field__textarea"
+        rows="3"
+        placeholder="Например: нужен лендинг на Tilda"
+      ></textarea>
+    </div>
+
+    <label class="checkbox">
+      <input type="checkbox" name="consent" required />
+      <span class="checkbox__box"></span>
+      <span class="checkbox__label">
+        Согласен на обработку персональных данных
+      </span>
+    </label>
+
+    <button type="submit" class="btn contact-form__submit">
+      Получить скидку
+      <span class="btn__arrow" aria-hidden="true">→</span>
+    </button>
+
+    <p class="game-modal__form-status" data-game-win-status></p>
+  </form>
+</div>
+
+    <!-- ============================ -->
+    <!-- ЭКРАН 3: ПРОИГРЫШ             -->
+    <!-- ============================ -->
+    <div class="game-modal__screen" data-game-screen="lose" hidden>
+      <p class="game-modal__lose-label">Три ошибки</p>
+      <h2 class="game-modal__title">Попробуйте ещё раз</h2>
+      <p class="game-modal__win-text">
+        Скидка не получена — но вы можете сыграть снова. У вас получится.
+      </p>
+
+      <button
+        type="button"
+        class="btn"
+        data-game-reset
+      >
+        Играть заново
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </button>
+    </div>
+
+  </div>
+</div>

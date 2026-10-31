@@ -1,0 +1,130 @@
+---
+// Sticky CTA на страницах статей:
+// - десктоп: две кнопки справа, прилипли к краю
+// - мобилка: плавающая панель снизу
+// Клик → попап с формой
+
+---
+
+<aside class="sticky-cta" data-sticky-cta>
+  <button
+    type="button"
+    class="sticky-cta__btn"
+    data-sticky-cta-open="site-development"
+  >
+    <span class="sticky-cta__label">Заказать разработку сайта</span>
+    <span class="sticky-cta__arrow" aria-hidden="true">→</span>
+  </button>
+
+  <button
+    type="button"
+    class="sticky-cta__btn"
+    data-sticky-cta-open="individual-training"
+  >
+    <span class="sticky-cta__label">Индивидуальное обучение</span>
+    <span class="sticky-cta__arrow" aria-hidden="true">→</span>
+  </button>
+</aside>
+
+<!-- Попап с формой -->
+<div class="sticky-modal" data-sticky-modal hidden>
+  <div class="sticky-modal__overlay" data-sticky-close></div>
+
+  <div
+    class="sticky-modal__content"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sticky-modal-title"
+  >
+    <button
+      type="button"
+      class="sticky-modal__close"
+      aria-label="Закрыть"
+      data-sticky-close
+    >✕</button>
+
+    <h2 class="sticky-modal__title" id="sticky-modal-title" data-sticky-modal-title>
+      Заказать разработку сайта
+    </h2>
+
+    <p class="sticky-modal__lead" data-sticky-modal-lead>
+      Опишите задачу — отвечу в течение рабочего дня.
+    </p>
+
+    <form class="contact-form sticky-modal__form" action="#" method="POST" data-contact-form>
+      <input type="hidden" name="source" value="article-sticky" />
+      <input type="hidden" name="type" value="" data-sticky-type-field />
+
+      <div class="field">
+        <label for="sticky-name" class="field__label">
+          Имя <span class="field__required">*</span>
+        </label>
+        <input type="text" id="sticky-name" name="name" class="field__input" required />
+      </div>
+
+      <fieldset class="field field--radio">
+        <legend class="field__label">
+          Способ связи <span class="field__required">*</span>
+        </legend>
+        <div class="radio-group">
+          <label class="radio">
+            <input type="radio" name="contact-method" value="telegram" checked data-method />
+            <span class="radio__box"></span>
+            <span class="radio__label">Telegram</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="contact-method" value="phone" data-method />
+            <span class="radio__box"></span>
+            <span class="radio__label">Телефон</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="contact-method" value="max" data-method />
+            <span class="radio__box"></span>
+            <span class="radio__label">MAX</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="sticky-contact" class="field__label" data-value-label>
+          Ваш ник или телефон в Telegram
+        </label>
+        <input
+          type="text"
+          id="sticky-contact"
+          name="contact"
+          class="field__input"
+          placeholder="@username или +7..."
+          required
+          data-value-input
+        />
+      </div>
+
+      <div class="field">
+        <label for="sticky-message" class="field__label">
+          Сообщение <span class="field__optional">(опционально)</span>
+        </label>
+        <textarea
+          id="sticky-message"
+          name="message"
+          class="field__input field__textarea"
+          rows="3"
+          placeholder="Коротко о задаче"
+        ></textarea>
+      </div>
+
+      <label class="checkbox">
+        <input type="checkbox" name="consent" required />
+        <span class="checkbox__box"></span>
+        <span class="checkbox__label">
+          Согласен на обработку персональных данных
+        </span>
+      </label>
+
+      <button type="submit" class="btn contact-form__submit">
+        Отправить
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </button>
+    </form>
+  </div>
+</div>

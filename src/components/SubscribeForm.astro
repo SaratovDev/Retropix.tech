@@ -1,0 +1,33 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Получай разборы и гайды по разработке на почту',
+  description = '1 полезное письмо в неделю, без спама. Отписка в один клик.',
+} = Astro.props;
+---
+
+<section class="subscribe-box">
+  <h2 class="subscribe-box__title">{title}</h2>
+  <p class="subscribe-box__description">{description}</p>
+
+<form class="subscribe-box__form" action="#" method="POST" data-contact-form>
+  <input type="hidden" name="source" value="article-subscribe" />
+  <input type="hidden" name="name" value="Подписчик" />
+  <input
+    type="email"
+    name="email"
+    class="subscribe-box__input"
+    placeholder="you@example.com"
+    required
+    aria-label="Email"
+  />
+  <button type="submit" class="btn subscribe-box__button">
+    Подписаться
+    <span class="btn__arrow" aria-hidden="true">→</span>
+  </button>
+</form>
+</section>

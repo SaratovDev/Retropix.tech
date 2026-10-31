@@ -1,0 +1,822 @@
+---
+title: "Как сделать слайдер на CSS без JavaScript: 3 варианта"
+description: "Три способа сделать слайдер на чистом CSS: fade, slide, 3D-куб. С живыми демо, разбором каждой строки и автопрокруткой без JS."
+pubDate: 2026-10-24
+cover: "/images/blog/kak-sdelat-slajder-na-css-cover.png"
+coverAlt: "Три варианта CSS-слайдера: fade, slide, 3D"
+tags: ["html-css", "features", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Слайдер** — один из самых частых элементов на сайтах. Обычно для него подключают JavaScript-библиотеки вроде Swiper или Slick. Но **простые слайдеры можно сделать на чистом CSS** — без единой строчки JS.
+
+В статье — **три варианта**: fade, slide и 3D-куб. Каждый — с **живым демо**, разбором каждой строки и объяснением для новичков. Плюс — **автопрокрутка** через CSS-анимацию.
+
+## Что вы узнаете
+
+- [Как работает переключение без JS](#как-работает-переключение)
+- [Слайдер 1: Fade — плавное исчезновение](#слайдер-1-fade)
+- [Слайдер 2: Slide — сдвиг лентой](#слайдер-2-slide)
+- [Слайдер 3: 3D-куб — поворот граней](#слайдер-3-3d-куб)
+- [Автопрокрутка через CSS-анимацию](#автопрокрутка)
+- [Доступность и prefers-reduced-motion](#доступность)
+- [Когда нужен JavaScript](#когда-нужен-javascript)
+- [FAQ](#faq)
+
+## Что нужно знать перед чтением
+
+Статья для **новичков**, которые уже видели HTML и CSS, но не работали с радиокнопками и трансформациями. Если что-то непонятно — не страшно, каждое свойство разберу подробно.
+
+**Базовые понятия:**
+
+- **Радиокнопка** — `<input type="radio">`. В группе одновременно выбрана только одна
+- **`:checked`** — псевдокласс, срабатывает, когда радиокнопка выбрана
+- **`~` (тильда)** — селектор «сосед на том же уровне». Выбирает элементы **после** указанного
+- **`transform`** — свойство для сдвига, поворота, масштабирования
+- **`transition`** — плавный переход между состояниями
+
+## Как работает переключение
+
+**Ключевая проблема:** в CSS **нет способа переключить слайд по клику** — потому что CSS не хранит состояние. Он не знает «какой слайд сейчас активен».
+
+**Решение:** использовать **радиокнопки**. Они **умеют хранить состояние** — браузер запоминает, какая радиокнопка выбрана. А CSS через `:checked` **реагирует** на это.
+
+**Схема:**
+
+```html
+<!-- Скрытые радиокнопки (управляют слайдами) -->
+<input type="radio" name="slider" id="slide-1" checked>
+<input type="radio" name="slider" id="slide-2">
+<input type="radio" name="slider" id="slide-3">
+
+<!-- Слайды -->
+<div class="slide slide-1">Слайд 1</div>
+<div class="slide slide-2">Слайд 2</div>
+<div class="slide slide-3">Слайд 3</div>
+
+<!-- Точки-индикаторы (кликабельные метки) -->
+<label for="slide-1"></label>
+<label for="slide-2"></label>
+<label for="slide-3"></label>
+```
+
+**Как это работает:**
+
+1. **Радиокнопки спрятаны** — пользователь их не видит
+2. **Метки `<label for="slide-1">`** — кликабельные точки. Клик по метке **выбирает соответствующую радиокнопку**
+3. **CSS через `:checked`** — показывает тот слайд, чья радиокнопка выбрана
+
+**Плюсы подхода:**
+
+- **Работает по клику** — настоящий интерактив
+- **Работает на мобилке** — тач-события тоже вызывают `:checked`
+- **Доступно** — можно переключать **клавиатурой** (стрелками влево-вправо)
+
+**Ограничение:** для каждого слайдера — **своя группа** радиокнопок (`name="slider-1"`, `name="slider-2"` и т.д.). Иначе они будут **конфликтовать**.
+
+## Слайдер 1: Fade
+
+**Идея:** все слайды **накладываются друг на друга** в одной точке. Активный — `opacity: 1`, остальные — `opacity: 0`. Переключение — **плавное исчезновение** одного и **появление** другого.
+
+**Когда использовать:** для фото-галерей, hero-секций, где важна **плавность**, а не движение.
+
+### HTML
+
+```html
+<div class="slider-fade">
+  <input type="radio" name="fade" id="fade-1" checked>
+  <input type="radio" name="fade" id="fade-2">
+  <input type="radio" name="fade" id="fade-3">
+
+  <div class="slider-fade__slides">
+    <div class="slider-fade__slide slide-1">01</div>
+    <div class="slider-fade__slide slide-2">02</div>
+    <div class="slider-fade__slide slide-3">03</div>
+  </div>
+
+  <div class="slider-fade__dots">
+    <label for="fade-1"></label>
+    <label for="fade-2"></label>
+    <label for="fade-3"></label>
+  </div>
+</div>
+```
+
+### CSS
+
+```css
+/* Контейнер */
+.slider-fade {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+/* Прячем радиокнопки */
+.slider-fade input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Обёртка слайдов */
+.slider-fade__slides {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Каждый слайд — в одной точке */
+.slider-fade__slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, sans-serif;
+  font-size: 64px;
+  font-weight: 900;
+  color: #F5F5F3;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+/* Цвета слайдов */
+.slide-1 { background: #F36223; }
+.slide-2 { background: #0A0A0A; }
+.slide-3 { background: #6B6B6B; }
+
+/* Активный слайд — виден */
+#fade-1:checked ~ .slider-fade__slides .slide-1,
+#fade-2:checked ~ .slider-fade__slides .slide-2,
+#fade-3:checked ~ .slider-fade__slides .slide-3 {
+  opacity: 1;
+}
+
+/* Точки-индикаторы */
+.slider-fade__dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.slider-fade__dots label {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #F5F5F3;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.slider-fade__dots label:hover {
+  background: rgba(245, 245, 243, 0.5);
+}
+
+#fade-1:checked ~ .slider-fade__dots label:nth-child(1),
+#fade-2:checked ~ .slider-fade__dots label:nth-child(2),
+#fade-3:checked ~ .slider-fade__dots label:nth-child(3) {
+  background: #F5F5F3;
+}
+```
+
+### Что важно
+
+- **`position: absolute` + `inset: 0`** — все слайды **в одной точке**, друг под другом
+- **`opacity: 0` + `transition`** — по умолчанию **невидимы**, при активации **плавно появляются** за 0.6 секунды
+- **`#fade-1:checked ~ .slider-fade__slides .slide-1`** — селектор, который **читается с конца**: «`.slide-1` внутри `.slider-fade__slides`, который **идёт после** радиокнопки `#fade-1`, когда она **выбрана**»
+- **`~` (тильда)** — оператор «**все элементы после**». Он важен: `input` идёт **до** слайдов в HTML, поэтому **может влиять** на них
+- **`nth-child(N)`** — для подсветки **активной точки** (третья точка — `nth-child(3)`)
+
+<div class="callout">
+  <span class="callout__label">Почему ~, а не +</span>
+  <p><code>+</code> — выбирает <strong>только следующего соседа</strong>. <code>~</code> — <strong>всех следующих</strong>. У нас между радиокнопкой и слайдами есть промежуточные элементы, поэтому нужен <code>~</code>.</p>
+</div>
+
+### Живое демо
+
+<LiveDemo
+  title="Fade — кликайте на точки внизу"
+  height={340}
+  html={`
+    <div class="slider">
+      <input type="radio" name="fade-demo" id="fd-1" checked>
+      <input type="radio" name="fade-demo" id="fd-2">
+      <input type="radio" name="fade-demo" id="fd-3">
+
+      <div class="slides">
+        <div class="slide slide-a">01</div>
+        <div class="slide slide-b">02</div>
+        <div class="slide slide-c">03</div>
+      </div>
+
+      <div class="dots">
+        <label for="fd-1"></label>
+        <label for="fd-2"></label>
+        <label for="fd-3"></label>
+      </div>
+    </div>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      background: #F5F5F3;
+      font-family: system-ui, sans-serif;
+    }
+
+    .slider {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+    }
+
+    .slider input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .slides {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      font-weight: 900;
+      color: #F5F5F3;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .slide-a { background: #F36223; }
+    .slide-b { background: #0A0A0A; }
+    .slide-c { background: #6B6B6B; }
+
+    #fd-1:checked ~ .slides .slide-a,
+    #fd-2:checked ~ .slides .slide-b,
+    #fd-3:checked ~ .slides .slide-c {
+      opacity: 1;
+    }
+
+    .dots {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .dots label {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #F5F5F3;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .dots label:hover { background: rgba(245,245,243,0.5); }
+
+    #fd-1:checked ~ .dots label:nth-child(1),
+    #fd-2:checked ~ .dots label:nth-child(2),
+    #fd-3:checked ~ .dots label:nth-child(3) {
+      background: #F5F5F3;
+    }
+  `}
+/>
+
+## Слайдер 2: Slide
+
+**Идея:** все слайды стоят **в ряд** внутри «ленты». Лента **сдвигается влево** через `transform: translateX`. Активный слайд **оказывается в видимой области**.
+
+**Когда использовать:** для каруселей товаров, новостей, карточек — когда важна **последовательность**.
+
+### HTML
+
+```html
+<div class="slider-slide">
+  <input type="radio" name="slide" id="s-1" checked>
+  <input type="radio" name="slide" id="s-2">
+  <input type="radio" name="slide" id="s-3">
+
+  <div class="slider-slide__viewport">
+    <div class="slider-slide__track">
+      <div class="slider-slide__item slide-1">01</div>
+      <div class="slider-slide__item slide-2">02</div>
+      <div class="slider-slide__item slide-3">03</div>
+    </div>
+  </div>
+
+  <div class="slider-slide__dots">
+    <label for="s-1"></label>
+    <label for="s-2"></label>
+    <label for="s-3"></label>
+  </div>
+</div>
+```
+
+### CSS
+
+```css
+/* Контейнер */
+.slider-slide {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 16 / 9;
+}
+
+/* Радиокнопки — спрятаны */
+.slider-slide input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Окно просмотра — обрезает всё, что не влезает */
+.slider-slide__viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Лента — широкая на 300% (три слайда по 100%) */
+.slider-slide__track {
+  display: flex;
+  width: 300%;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Каждый слайд — 1/3 ленты */
+.slider-slide__item {
+  flex: 0 0 33.333%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, sans-serif;
+  font-size: 64px;
+  font-weight: 900;
+  color: #F5F5F3;
+}
+
+/* Сдвиг ленты при выборе радиокнопки */
+#s-1:checked ~ .slider-slide__viewport .slider-slide__track {
+  transform: translateX(0);
+}
+#s-2:checked ~ .slider-slide__viewport .slider-slide__track {
+  transform: translateX(-33.333%);
+}
+#s-3:checked ~ .slider-slide__viewport .slider-slide__track {
+  transform: translateX(-66.666%);
+}
+```
+
+### Что важно
+
+- **`overflow: hidden`** на `.slider-slide__viewport` — **обрезает всё за пределами** окна. Без него слайды будут видны **все сразу**
+- **`width: 300%`** на треке — потому что **три слайда по 100%**. Если слайдов 5 — `width: 500%`
+- **`flex: 0 0 33.333%`** — каждый слайд **не сжимается** и **не растягивается**, занимает ровно **треть трека**
+- **`transform: translateX(-33.333%)`** — сдвиг **на одну ширину слайда** влево. Для третьего — **на две ширины**
+- **Проценты от трека**, а не от окна. Трек 300%, значит `33.333%` от трека = `100%` от окна = **один слайд**
+
+### Живое демо
+
+<LiveDemo
+  title="Slide — сдвиг лентой"
+  height={340}
+  html={`
+    <div class="slider">
+      <input type="radio" name="slide-demo" id="sd-1" checked>
+      <input type="radio" name="slide-demo" id="sd-2">
+      <input type="radio" name="slide-demo" id="sd-3">
+
+      <div class="viewport">
+        <div class="track">
+          <div class="item item-a">01</div>
+          <div class="item item-b">02</div>
+          <div class="item item-c">03</div>
+        </div>
+      </div>
+
+      <div class="dots">
+        <label for="sd-1"></label>
+        <label for="sd-2"></label>
+        <label for="sd-3"></label>
+      </div>
+    </div>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      background: #F5F5F3;
+      font-family: system-ui, sans-serif;
+    }
+
+    .slider {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 16 / 9;
+    }
+
+    .slider input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .viewport {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .track {
+      display: flex;
+      width: 300%;
+      height: 100%;
+      transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    .item {
+      flex: 0 0 33.333%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      font-weight: 900;
+      color: #F5F5F3;
+    }
+
+    .item-a { background: #F36223; }
+    .item-b { background: #0A0A0A; }
+    .item-c { background: #6B6B6B; }
+
+    #sd-1:checked ~ .viewport .track { transform: translateX(0); }
+    #sd-2:checked ~ .viewport .track { transform: translateX(-33.333%); }
+    #sd-3:checked ~ .viewport .track { transform: translateX(-66.666%); }
+
+    .dots {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .dots label {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #F5F5F3;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .dots label:hover { background: rgba(245,245,243,0.5); }
+
+    #sd-1:checked ~ .dots label:nth-child(1),
+    #sd-2:checked ~ .dots label:nth-child(2),
+    #sd-3:checked ~ .dots label:nth-child(3) {
+      background: #F5F5F3;
+    }
+  `}
+/>
+
+## Слайдер 3: 3D-куб
+
+**Идея:** слайды — **грани куба**. При переключении **весь куб поворачивается** через `rotateY`. Визуально — **эффект 3D**.
+
+**Когда использовать:** для wow-эффекта в hero-секциях, промо-страницах. **Не для функциональных слайдеров** — сложно воспринимать контент.
+
+### HTML
+
+```html
+<div class="slider-3d">
+  <input type="radio" name="cube" id="c-1" checked>
+  <input type="radio" name="cube" id="c-2">
+  <input type="radio" name="cube" id="c-3">
+
+  <div class="slider-3d__scene">
+    <div class="slider-3d__cube">
+      <div class="slider-3d__face face-1">01</div>
+      <div class="slider-3d__face face-2">02</div>
+      <div class="slider-3d__face face-3">03</div>
+    </div>
+  </div>
+
+  <div class="slider-3d__dots">
+    <label for="c-1"></label>
+    <label for="c-2"></label>
+    <label for="c-3"></label>
+  </div>
+</div>
+```
+
+### CSS
+
+```css
+/* Контейнер */
+.slider-3d {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 16 / 9;
+}
+
+.slider-3d input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Сцена — задаёт перспективу (глубину 3D) */
+.slider-3d__scene {
+  width: 100%;
+  height: 100%;
+  perspective: 1200px;
+  overflow: hidden;
+}
+
+/* Куб — контейнер для граней */
+.slider-3d__cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Грань куба — каждая на своём месте */
+.slider-3d__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, sans-serif;
+  font-size: 64px;
+  font-weight: 900;
+  color: #F5F5F3;
+  backface-visibility: hidden;
+}
+
+/* Три грани повёрнуты на 120° друг от друга */
+.face-1 { background: #F36223; transform: rotateY(0deg) translateZ(200px); }
+.face-2 { background: #0A0A0A; transform: rotateY(120deg) translateZ(200px); }
+.face-3 { background: #6B6B6B; transform: rotateY(240deg) translateZ(200px); }
+
+/* Поворот куба при выборе радиокнопки */
+#c-1:checked ~ .slider-3d__scene .slider-3d__cube {
+  transform: rotateY(0deg);
+}
+#c-2:checked ~ .slider-3d__scene .slider-3d__cube {
+  transform: rotateY(-120deg);
+}
+#c-3:checked ~ .slider-3d__scene .slider-3d__cube {
+  transform: rotateY(-240deg);
+}
+```
+
+### Что важно
+
+- **`perspective: 1200px`** на сцене — создаёт **эффект глубины**. Чем меньше значение, тем **сильнее перспектива**. `1200px` — оптимально для нашего размера
+- **`transform-style: preserve-3d`** на кубе — говорит браузеру: «дети **живут в 3D-пространстве**». Без этого **грани сплющатся** в плоскость
+- **`rotateY(Ndeg)` + `translateZ(200px)`** — **поворот** вокруг вертикальной оси **и сдвиг вперёд**. `translateZ(200px)` **выносит грань** из центра куба на 200 пикселей вперёд
+- **`backface-visibility: hidden`** — **скрывает заднюю сторону грани**. Без этого **через одну грань** видно другую — некрасиво
+- **Обратный поворот куба** при переключении: если слайд сдвинут на 120° вправо, куб **поворачиваем на -120°** — чтобы слайд **вышел вперёд**
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Число <code>200px</code> в <code>translateZ</code> — это <strong>половина ширины</strong> слайда. Если слайд <code>400px</code> — выносим на <code>200px</code>. Для ширины <code>300px</code> — на <code>150px</code>. Это нужно, чтобы грани <strong>не пересекались</strong> друг с другом.</p>
+</div>
+
+### Живое демо
+
+<LiveDemo
+  title="3D-куб — поворот граней"
+  height={340}
+  html={`
+    <div class="slider">
+      <input type="radio" name="cube-demo" id="cd-1" checked>
+      <input type="radio" name="cube-demo" id="cd-2">
+      <input type="radio" name="cube-demo" id="cd-3">
+
+      <div class="scene">
+        <div class="cube">
+          <div class="face face-a">01</div>
+          <div class="face face-b">02</div>
+          <div class="face face-c">03</div>
+        </div>
+      </div>
+
+      <div class="dots">
+        <label for="cd-1"></label>
+        <label for="cd-2"></label>
+        <label for="cd-3"></label>
+      </div>
+    </div>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      background: #F5F5F3;
+      font-family: system-ui, sans-serif;
+    }
+
+    .slider {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 16 / 9;
+    }
+
+    .slider input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .scene {
+      width: 100%;
+      height: 100%;
+      perspective: 1200px;
+      overflow: hidden;
+    }
+
+    .cube {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      font-weight: 900;
+      color: #F5F5F3;
+      backface-visibility: hidden;
+    }
+
+    .face-a { background: #F36223; transform: rotateY(0deg) translateZ(118px); }
+    .face-b { background: #0A0A0A; transform: rotateY(120deg) translateZ(118px); }
+    .face-c { background: #6B6B6B; transform: rotateY(240deg) translateZ(118px); }
+
+    #cd-1:checked ~ .scene .cube { transform: rotateY(0deg); }
+    #cd-2:checked ~ .scene .cube { transform: rotateY(-120deg); }
+    #cd-3:checked ~ .scene .cube { transform: rotateY(-240deg); }
+
+    .dots {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .dots label {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #F5F5F3;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .dots label:hover { background: rgba(245,245,243,0.5); }
+
+    #cd-1:checked ~ .dots label:nth-child(1),
+    #cd-2:checked ~ .dots label:nth-child(2),
+    #cd-3:checked ~ .dots label:nth-child(3) {
+      background: #F5F5F3;
+    }
+  `}
+/>
+
+## Автопрокрутка
+
+**Идея:** слайды **сами переключаются** через CSS-анимацию. Пользователь **не кликает** — просто смотрит.
+
+**Как работает:** вместо `:checked` используем **`@keyframes`**, который **меняет активный слайд** каждые N секунд.
+
+<div class="callout">
+  <span class="callout__label">Ограничение</span>
+  <p>Автопрокрутка <strong>не совмещается</strong> с radio buttons. Или ручное переключение, или автопрокрутка. <strong>Вместе — только с JS.</strong> Ниже — чистый автоплей.</p>
+</div>
+
+### CSS для fade с автопрокруткой
+
+```css
+/* Анимация: слайды плавно сменяются каждые 9 секунд */
+@keyframes auto-fade {
+  0%, 33% { opacity: 1; }      /* слайд виден 1/3 цикла */
+  34%, 100% { opacity: 0; }     /* слайд скрыт оставшиеся 2/3 */
+}
+
+.slider-auto .slide-1 {
+  animation: auto-fade 9s infinite;
+  animation-delay: 0s;
+}
+.slider-auto .slide-2 {
+  animation: auto-fade 9s infinite;
+  animation-delay: 3s;
+}
+.slider-auto .slide-3 {
+  animation: auto-fade 9s infinite;
+  animation-delay: 6s;
+}
+```
+
+**Разбор:**
+
+- **`9s infinite`** — анимация длится **9 секунд** и **повторяется бесконечно**. Три слайда × 3 секунды = 9
+- **`animation-delay`** — **задержка старта** для каждого слайда. Слайд 1 начинает сразу, слайд 2 — через 3 секунды, слайд 3 — через 6
+- **`0%, 33%`** — активен **первую треть** времени. **`34%, 100%`** — скрыт **оставшиеся две трети**
+
+**Совмещение с radio buttons невозможно** — потому что анимация **переопределяет** `:checked`-правила. Либо автоплей, либо ручное управление.
+
+## Доступность
+
+**Важно:** анимация заливки и движение слайдов — **потенциальный дискомфорт** для людей с вестибулярными расстройствами. Уважайте системные настройки:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .slider-fade__slide,
+  .slider-slide__track,
+  .slider-3d__cube,
+  .slider-auto .slide-1,
+  .slider-auto .slide-2,
+  .slider-auto .slide-3 {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+}
+```
+
+**Что это даёт:** все анимации становятся **мгновенными** — переход между слайдами **без плавности**. Пользователь **видит результат**, но **без движения**.
+
+**Плюс — клавиатура:**
+
+Радиокнопки **работают с клавиатурой**. Достаточно **Tab**-ом дойти до группы и **стрелками влево-вправо** переключать слайды. Это **бесплатный бонус** от использования `<input type="radio">` — не нужно ничего добавлять.
+
+**Атрибуты для доступности** — добавьте на контейнер слайдера:
+
+```html
+<div class="slider-fade" role="region" aria-label="Галерея изображений">
+```
+
+**`role="region"`** — обозначает **самостоятельный блок**. **`aria-label`** — его **имя для скринридеров**.
+
+## Когда нужен JavaScript
+
+CSS-слайдеры **решают многие задачи**, но **не все**. Когда стоит **подключить JS**:
+
+- **Свайпы на мобилке** — CSS не умеет обрабатывать жесты
+- **Пауза при наведении + автопрокрутка одновременно** — только с JS
+- **Автопрокрутка + ручное переключение** — вместе требуют логики
+- **Динамические слайды** — если контент **приходит из API**
+- **Доступ к данным** — «текущий слайд», «прогресс»,

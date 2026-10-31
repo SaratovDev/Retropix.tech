@@ -1,0 +1,67 @@
+---
+interface Slide {
+  src: string;
+  alt: string;
+}
+
+interface Props {
+  slides: Slide[];
+  autoplayDelay?: number;
+}
+
+const { slides, autoplayDelay = 3000 } = Astro.props;
+---
+
+<div
+  class="hero-slider"
+  data-hero-slider
+  data-autoplay={autoplayDelay}
+>
+  <!-- Трек со слайдами -->
+  <div class="hero-slider__track" data-hero-slider-track>
+    {slides.map((slide, i) => (
+      <div
+        class:list={['hero-slider__slide', { 'is-active': i === 0 }]}
+        data-hero-slide
+        data-index={i}
+      >
+        <img
+          src={slide.src}
+          alt={slide.alt}
+          width="600"
+          height="620"
+          loading={i === 0 ? 'eager' : 'lazy'}
+          fetchpriority={i === 0 ? 'high' : 'low'}
+        />
+        <span class="hero-slider__placeholder" aria-hidden="true">
+          [КАДР {String(i + 1).padStart(2, '0')}]
+        </span>
+      </div>
+    ))}
+  </div>
+
+  <!-- Счётчик -->
+  <div class="hero-slider__counter">
+    <span data-hero-slider-current>01</span>
+    <span class="hero-slider__counter-divider">/</span>
+    <span data-hero-slider-total>{String(slides.length).padStart(2, '0')}</span>
+  </div>
+
+  <!-- Стрелки -->
+  <button
+    type="button"
+    class="hero-slider__arrow hero-slider__arrow--prev"
+    data-hero-slider-prev
+    aria-label="Предыдущий слайд"
+  >
+    ←
+  </button>
+  <button
+    type="button"
+    class="hero-slider__arrow hero-slider__arrow--next"
+    data-hero-slider-next
+    aria-label="Следующий слайд"
+  >
+    →
+  </button>
+</div>

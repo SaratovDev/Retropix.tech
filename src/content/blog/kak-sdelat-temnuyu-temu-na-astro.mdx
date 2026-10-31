@@ -1,0 +1,304 @@
+---
+title: "Как сделать тёмную тему на Astro: пошаговое руководство"
+description: "Разбираю, как добавить переключатель тёмной темы на Astro: без FOUC, с сохранением в localStorage, поддержкой системных настроек и View Transitions."
+pubDate: 2026-10-29
+cover: "/images/blog/kak-sdelat-temnuyu-temu-na-astro-cover.png"
+coverAlt: "Переключатель тёмной темы на сайте Astro"
+tags: ["astrojs", "features", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Тёмная тема** — это не просто тренд. Это:
+- **Комфорт для глаз** — особенно вечером
+- **Экономия батареи** — на OLED-экранах
+- **Пользовательский выбор** — многие ожидают эту опцию
+
+В этой статье разберём, **как правильно добавить переключатель тёмной темы в Astro**. Без «мигания» при загрузке — это главная проблема, которую решают по-разному.
+
+## Что вы узнаете
+
+- [Почему тема «мигает» при загрузке](#почему-тема-мигает)
+- [Правильная архитектура решения](#правильная-архитектура)
+- [Шаг 1. Инлайн-скрипт в head](#шаг-1-инлайн-скрипт)
+- [Шаг 2. CSS-переменные для тем](#шаг-2-css-переменные)
+- [Шаг 3. Кнопка переключения](#шаг-3-кнопка-переключения)
+- [Шаг 4. Работа с View Transitions](#шаг-4-view-transitions)
+- [Готовые библиотеки](#готовые-библиотеки)
+
+## Почему тема «мигает» при загрузке
+
+**Проблема:** когда пользователь с сохранённой тёмной темой открывает сайт, он на **долю секунды** видит **светлую тему** — потом она меняется на тёмную. Это **FART** (Flash of Inaccurate Color Theme) или **FOUC** (Flash of Unstyled Content).
+
+**Почему это происходит:**
+
+1. Браузер **парсит HTML**
+2. Загружает **CSS** с дефолтной (светлой) темой
+3. **Отрисовывает страницу** в светлой теме
+4. Запускается **JavaScript**, читает `localStorage`
+5. Меняет тему на **тёмную**
+6. Пользователь видит **«мигание»**
+
+**Решение:** читать тему из `localStorage` **до того, как браузер отрисует страницу**. Для этого нужен **инлайн-скрипт в `<head>`** — он выполняется **синхронно** до первой отрисовки.
+
+## Правильная архитектура
+
+**Три компонента:**
+
+1. **Инлайн-скрипт в `<head>`** — читает тему из `localStorage` и ставит атрибут на `<html>` **до первой отрисовки**
+2. **CSS-переменные** — определяют цвета для светлой и тёмной темы через `[data-theme]`
+3. **Кнопка переключения** — меняет тему, сохраняет в `localStorage`
+
+**Схема:**
+
+```
+┌─────────────────────────────────────┐
+│ <head>                              │
+│   <script> (inline)                 │ ← читает тему ДО отрисовки
+│     → ставит data-theme на <html>   │
+│   </script>                         │
+│   <style>                           │
+│     :root { светлые переменные }    │
+│     [data-theme="dark"] { тёмные }  │
+│   </style>                          │
+│ </head>                             │
+│                                     │
+│ <body>                              │
+│   <button> (переключатель)          │ ← меняет тему
+│ </body>                             │
+└─────────────────────────────────────┘
+```
+
+## Шаг 1. Инлайн-скрипт в head
+
+**Главное правило:** скрипт должен быть **инлайн** (не через `src`), **синхронный** (без `defer`), и **в начале `<head>`** — до подключения CSS.
+
+**Открой `src/layouts/BaseLayout.astro`** и добавь **в начало `<head>`**:
+
+```astro
+<script is:inline>
+  (function() {
+    try {
+      var theme = localStorage.getItem('theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      // Если тема сохранена — используем её
+      // Если нет — проверяем системные настройки
+      if (theme === 'dark' || (!theme && prefersDark)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {}
+  })();
+</script>
+```
+
+**Что важно:**
+
+- **`is:inline`** — Astro не будет обрабатывать этот скрипт (минифицировать, выносить в файл). Он останется **прямо в HTML**
+- **`try/catch`** — `localStorage` может **выбросить ошибку** в приватном режиме или при блокировке cookie
+- **Логика:** если тема **сохранена** — используем её. Если **нет** — проверяем **системные настройки** (`prefers-color-scheme`)
+- **Скрипт стоит ДО CSS** — поэтому к моменту отрисовки на `<html>` уже есть `data-theme="dark"`
+
+## Шаг 2. CSS-переменные для тем
+
+**Открой `src/styles/tokens.css`** и добавь **в конец**:
+
+```css
+/* ============================================
+   СВЕТЛАЯ ТЕМА (по умолчанию)
+   ============================================ */
+:root {
+  --bg: #F5F5F3;
+  --bg-alt: #FFFFFF;
+  --text: #0A0A0A;
+  --text-muted: #6B6B6B;
+  --border: #0A0A0A;
+  --border-soft: #D4D4D0;
+}
+
+/* ============================================
+   ТЁМНАЯ ТЕМА
+   ============================================ */
+[data-theme="dark"] {
+  --bg: #0A0A0A;
+  --bg-alt: #1A1A1A;
+  --text: #F5F5F3;
+  --text-muted: #A0A0A0;
+  --border: #F5F5F3;
+  --border-soft: #333333;
+}
+```
+
+**Что это даёт:**
+
+- **Светлая тема** — значения по умолчанию в `:root`
+- **Тёмная тема** — переопределяется через `[data-theme="dark"]` на `<html>`
+- **Все компоненты**, использующие `var(--bg)`, `var(--text)` и т.д., **автоматически** переключаются
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Если вы используете <strong>Tailwind CSS</strong>, добавьте <code>darkMode: 'class'</code> в конфиг и используйте <code>dark:</code> модификаторы. Astro-Color-Scheme добавляет класс <code>dark</code> на <code>&lt;html&gt;</code> автоматически.</p>
+</div>
+
+## Шаг 3. Кнопка переключения
+
+Создай **`src/components/ThemeToggle.astro`**:
+
+```astro
+---
+// Переключатель тёмной темы
+---
+
+<button
+  type="button"
+  class="theme-toggle"
+  aria-label="Переключить тему"
+  data-theme-toggle
+>
+  <span class="theme-toggle__sun" aria-hidden="true">☀</span>
+  <span class="theme-toggle__moon" aria-hidden="true">☾</span>
+</button>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    transition: border-color 0.3s ease, color 0.3s ease;
+  }
+
+  .theme-toggle:hover {
+    border-color: #F36223;
+    color: #F36223;
+  }
+
+  /* Иконка солнца — для тёмной темы */
+  .theme-toggle__sun { display: none; }
+
+  /* Иконка луны — для светлой темы */
+  [data-theme="light"] .theme-toggle__sun { display: inline; }
+  [data-theme="light"] .theme-toggle__moon { display: none; }
+
+  [data-theme="dark"] .theme-toggle__sun { display: inline; }
+  [data-theme="dark"] .theme-toggle__moon { display: none; }
+</style>
+```
+
+**Подключи в `BaseLayout.astro`** — например, в шапке:
+
+```astro
+import ThemeToggle from '../components/ThemeToggle.astro';
+...
+<header>
+  <a href="/">{SITE.name}</a>
+  <nav>...</nav>
+  <ThemeToggle />
+</header>
+```
+
+**Логика переключения** — добавь в конец `BaseLayout.astro` (в основной `<script>`):
+
+```ts
+const toggle = document.querySelector('[data-theme-toggle]');
+
+toggle?.addEventListener('click', () => {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+  document.documentElement.setAttribute('data-theme', newTheme);
+
+  try {
+    localStorage.setItem('theme', newTheme);
+  } catch (e) {}
+});
+```
+
+## Шаг 4. Работа с View Transitions
+
+**Проблема:** если вы используете **Astro View Transitions** (`<ClientRouter />`), скрипт в `<head>` **не выполняется** при переходах между страницами. Тема может **сброситься**.
+
+**Решение:** слушать событие `astro:after-swap` и восстанавливать тему:
+
+```ts
+// Восстанавливаем тему после каждого перехода
+document.addEventListener('astro:after-swap', () => {
+  try {
+    const theme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) {}
+});
+```
+
+**Что это даёт:** при переходах между страницами тема **сохраняется**, не мигает.
+
+## Готовые библиотеки
+
+**Если не хотите писать всё с нуля** — есть готовые решения:
+
+| Библиотека | Особенности |
+|---|---|
+| **astro-viewtransition-theme** | Zero-flash, View Transitions, system-aware  |
+| **astro-color-scheme** | Headless, поддержка button/select/radio  |
+| **@arraypress/theme-switcher-astro** | Pre-paint fix, zero deps  |
+| **astro-theme-toggle** | Ripple-анимация, zero-flash  |
+
+**Моя рекомендация — `astro-viewtransition-theme`**, если используете View Transitions. Она решает **все проблемы из коробки** .
+
+## Итог
+
+**Тёмная тема на Astro — это три компонента:**
+
+1. **Инлайн-скрипт в `<head>`** — читает тему **до первой отрисовки** → **никакого FOUC**
+2. **CSS-переменные** — `:root` для светлой, `[data-theme="dark"]` для тёмной
+3. **Кнопка + JS** — переключает тему и сохраняет в `localStorage`
+
+**Ключевые правила:**
+
+- **Скрипт — инлайн, синхронный, в начале `<head>`**
+- **`try/catch` вокруг `localStorage`** — не везде работает
+- **Событие `astro:after-swap`** — если используете View Transitions
+- **Системные настройки** — проверяйте `prefers-color-scheme` как fallback
+
+**Попробуйте:** добавьте тему на свой сайт и посмотрите, как это работает. Если что-то не получается — готовые библиотеки решают типичные проблемы.
+
+## FAQ
+
+### Почему тема всё равно мигает?
+
+**Проверьте три вещи:**
+1. Скрипт **в `<head>`** (не в `<body>`)
+2. Скрипт **инлайн** (не через `src`)
+3. Скрипт стоит **до CSS**
+
+Если всё так — возможно, конфликт с View Transitions. Добавьте обработчик `astro:after-swap`.
+
+### Как сделать «системную» тему по умолчанию?
+
+**В инлайн-скрипте** уже есть логика: если тема не сохранена — проверяется `prefers-color-scheme`. Если хотите добавить кнопку «Системная» — сохраняйте `theme = null` в `localStorage`.
+
+### Можно ли использовать Tailwind?
+
+**Да.** Добавьте `darkMode: 'class'` в `tailwind.config`, и используйте `dark:` модификаторы. Astro-Color-Scheme **автоматически** ставит класс `dark` на `<html>`.
+
+### Нужно ли что-то менять для View Transitions?
+
+**Да, добавьте слушатель** `astro:after-swap`, который восстанавливает тему. Иначе при переходах тема **сбрасывается**.
+
+### Есть ли готовые компоненты для Astro?
+
+**Да.** `astro-viewtransition-theme`, `astro-color-scheme`, `@arraypress/theme-switcher-astro` — все решают задачу. Выбирайте по функциям.
+
+---
+
+**Хотите разобраться с контентом на Astro?** Читайте [Контент-коллекции в Astro: полное руководство](/blog/content-collections-v-astro). А если только начинаете — [Как создать сайт на Astro JS с нуля](/blog/kak-sozdat-sajt-na-astro).

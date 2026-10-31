@@ -1,0 +1,85 @@
+---
+// Секция с двумя играми: Мемори и Лабиринт
+// Разрез пополам без гэпа
+---
+
+<section class="game-section">
+  <div class="container">
+    <span class="label game-section__label">Играйте и получайте скидки</span>
+
+    <h2 class="game-section__title">Выиграйте скидку прямо сейчас</h2>
+
+    <p class="game-section__lead"   id="games">
+      Две игры — выбирайте по вкусу. Побеждайте и получайте скидку
+      на любую услугу. Скидка действует один раз и только для тех,
+      кто оставит контакт после победы.
+    </p>
+
+    <div class="game-section__split">
+      <!-- === МЕМОРИ === -->
+      <div class="game-half">
+        <div class="game-half__head">
+          <span class="game-half__tag">Мемори</span>
+          <span class="game-half__discount">−15%</span>
+        </div>
+
+        <p class="game-half__description">
+          Открывайте парные карточки с эмодзи. Четыре ошибки — раунд
+          начинается заново. Соберите все 6 пар — скидка ваша.
+        </p>
+
+        <div class="game-half__preview game-half__preview--memory" aria-hidden="true">
+          {Array.from({ length: 16 }).map((_, i) => (
+            <div class="game-preview-card">?</div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          class="btn game-half__play"
+          data-game-open
+        >
+          Играть в Мемори
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+
+      <!-- === ЛАБИРИНТ === -->
+      <div class="game-half">
+        <div class="game-half__head">
+          <span class="game-half__tag">Слепой лабиринт</span>
+          <span class="game-half__discount">−5…−30%</span>
+        </div>
+
+        <p class="game-half__description">
+          Пройдите слепой лабиринт от старта до выхода. Три уровня
+          сложности — чем больше поле, тем выше скидка. Ловушки
+          запоминаются после первого попадания.
+        </p>
+
+        <div class="game-half__preview game-half__preview--labyrinth" aria-hidden="true">
+          {Array.from({ length: 16 }).map((_, i) => (
+            <div class="labyrinth-preview-cell"></div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          class="btn game-half__play"
+          data-labyrinth-open
+        >
+          Играть в Лабиринт
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-section__footer">
+  <a href="/leaderboard" class="btn">
+    Таблица лидеров
+    <span class="btn__arrow" aria-hidden="true">→</span>
+  </a>
+</div>
+
+</section>

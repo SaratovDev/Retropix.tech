@@ -1,0 +1,378 @@
+---
+title: "Что такое CSS Grid и как его использовать: шпаргалка"
+description: "CSS Grid — двумерная сетка для вёрстки. Разбираю grid-template-columns, gap, minmax, auto-fit и три готовых шаблона для реальных задач."
+pubDate: 2026-10-22
+cover: "/images/blog/chto-takoe-css-grid-cover.png"
+coverAlt: "Grid-контейнер в DevTools с подсветкой строк и колонок"
+tags: ["html-css", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**CSS Grid** — это инструмент для **двумерной вёрстки**. Если Flexbox работает с одним направлением за раз (строка **или** колонка), то Grid управляет **строками и колонками одновременно**. Это делает его идеальным для макетов страниц, галерей, карточных сеток.
+
+Не нужно запоминать все свойства. **90% задач решаются пятью.** Разберём их и три готовых шаблона, которые можно копировать.
+
+## Отличие Grid от Flexbox
+
+| | Flexbox | Grid |
+|---|---|---|
+| **Размерность** | 1D — строка **или** колонка | 2D — строки **и** колонки |
+| **Когда использовать** | Навигация, кнопки, строки | Макеты, карточки, галереи |
+| **Оси** | Главная + поперечная | Строки + колонки |
+| **Пример** | Меню, хлебные крошки | Сетка из 12 карточек |
+
+**Правило:** если задача одномерная — Flexbox. Если нужно **и строки, и колонки** — Grid.
+
+## Шаг 1. Включаем Grid
+
+```css
+.container {
+  display: grid;
+}
+```
+
+**Что происходит:**
+
+- Контейнер становится grid-контейнером
+- **Дети автоматически выстраиваются в одну колонку** — каждая на новой строке
+- Дальше мы определяем **структуру сетки** — сколько колонок и строк
+
+## Свойство 1: grid-template-columns (главное)
+
+Определяет **количество и ширину колонок**.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;   /* три равные колонки */
+}
+```
+
+**Единица `fr`** — это **фракция свободного места**. `1fr 1fr 1fr` = три равные колонки.
+
+Единица `fr` — это фракция свободного места. `1fr 1fr 1fr` = три равные колонки.
+
+<LiveDemo
+  title="Grid: 3 равные колонки"
+  height={220}
+  html={`
+    <div class="container">
+      <div class="item">1</div>
+      <div class="item">2</div>
+      <div class="item">3</div>
+    </div>
+  `}
+  css={`
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .item {
+      padding: 32px 0;
+      background: #F0F0EC;
+      border: 1px solid #0A0A0A;
+      text-align: center;
+      font-weight: 900;
+      font-size: 24px;
+      font-family: system-ui, sans-serif;
+    }
+  `}
+/>
+
+**Можно комбинировать:**
+
+```css
+grid-template-columns: 200px 1fr 1fr;   /* 200px + две равные */
+grid-template-columns: 1fr 2fr 1fr;     /* 1:2:1 */
+grid-template-columns: 100px 200px;     /* фиксированные */
+```
+
+**Сокращение — `repeat()`:**
+
+```css
+grid-template-columns: repeat(4, 1fr);   /* 4 равные колонки */
+grid-template-columns: repeat(3, 200px); /* 3 по 200px */
+```
+
+![Grid-контейнер с 3 колонками и 2 строками](/images/blog/chto-takoe-css-grid-01.jpg)
+
+## Свойство 2: grid-template-rows
+
+Определяет **высоту строк**. Если не задано — строки создаются автоматически по содержимому.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 100px 200px;   /* первая строка 100px, вторая 200px */
+}
+```
+
+**Если строк больше, чем указано** — оставшиеся создаются автоматически. Их высоту можно задать через **`grid-auto-rows`**:
+
+```css
+grid-auto-rows: 150px;   /* все авто-строки по 150px */
+```
+
+## Свойство 3: gap
+
+Отступы между **строками и колонками**. Заменяет `margin` на детях.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;             /* 20px между всеми */
+}
+
+/* Можно раздельно: */
+gap: 20px 10px;          /* 20px между строками, 10px между колонками */
+```
+
+**Плюс:** `gap` **не добавляет отступы по краям** — в отличие от `margin`, не нужно вычитать последний элемент.
+
+
+
+<LiveDemo
+  title="Адаптив без media queries — сузьте окно"
+  height={360}
+  html={`
+    <div class="cards">
+      <div class="card">1</div>
+      <div class="card">2</div>
+      <div class="card">3</div>
+      <div class="card">4</div>
+      <div class="card">5</div>
+      <div class="card">6</div>
+      <div class="card">7</div>
+      <div class="card">8</div>
+    </div>
+  `}
+  css={`
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      padding: 32px 0;
+      background: #F0F0EC;
+      border: 1px solid #0A0A0A;
+      text-align: center;
+      font-weight: 900;
+      font-size: 20px;
+      font-family: system-ui, sans-serif;
+    }
+  `}
+/>
+
+## Свойство 4: minmax() — адаптив без media queries
+
+**`minmax(min, max)`** — задаёт **минимальный и максимальный размер** колонки.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+```
+
+**Что это даёт:**
+
+- **Каждая колонка — минимум 250px, максимум — `1fr`** (сколько осталось)
+- **`auto-fit`** — создаёт **столько колонок, сколько влезает** в контейнер
+- **На широком экране** — 4–6 колонок
+- **На узком** — 2–3
+- **На мобильном** — 1
+
+**Это самая мощная магия Grid.** Адаптивная сетка **без media queries**.
+
+## Свойство 5: grid-template-areas — макет текстом
+
+Позволяет **нарисовать макет** ASCII-артом.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: 80px 1fr 60px;
+  grid-template-areas:
+    "header header"
+    "sidebar main"
+    "footer footer";
+}
+
+.header { grid-area: header; }
+.sidebar { grid-area: sidebar; }
+.main { grid-area: main; }
+.footer { grid-area: footer; }
+```
+
+**Что это даёт:** вы **видите макет в CSS**. Каждое слово — имя области, повторяющиеся слова = объединённые ячейки.
+
+**Плюс:** легко менять макет — правишь одну строку в CSS.
+
+**Минус:** не работает для адаптивных сеток с неизвестным числом элементов.
+
+
+**После этого блока** (перед `## Три шаблона для реальных задач`) **добавь:**
+
+
+<LiveDemo
+  title="Макет страницы через grid-template-areas"
+  height={380}
+  html={`
+    <div class="layout">
+      <header class="header">Header</header>
+      <aside class="sidebar">Sidebar</aside>
+      <main class="main">Main content</main>
+      <footer class="footer">Footer</footer>
+    </div>
+  `}
+  css={`
+    .layout {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      grid-template-rows: 60px 1fr 50px;
+      grid-template-areas:
+        "header header"
+        "sidebar main"
+        "footer footer";
+      gap: 8px;
+      height: 340px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .header, .sidebar, .main, .footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #0A0A0A;
+    }
+    .header {
+      grid-area: header;
+      background: #F36223;
+      color: white;
+    }
+    .sidebar {
+      grid-area: sidebar;
+      background: #F0F0EC;
+    }
+    .main {
+      grid-area: main;
+      background: white;
+    }
+    .footer {
+      grid-area: footer;
+      background: #F0F0EC;
+    }
+  `}
+/>
+
+## Три шаблона для реальных задач
+
+### Шаблон 1: Карточная сетка (адаптивная)
+
+```css
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+```
+
+**Что даёт:** карточки автоматически выстраиваются в ряд, переносятся на новую строку, растягиваются/сжимаются. **Без media queries.**
+
+### Шаблон 2: Макет страницы (header + sidebar + main + footer)
+
+```css
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 80px 1fr 60px;
+  grid-template-areas:
+    "header header"
+    "sidebar main"
+    "footer footer";
+  min-height: 100vh;
+  gap: 0;
+}
+```
+
+**Что даёт:** классический макет с фиксированной шапкой, сайдбаром и футером. `min-height: 100vh` растягивает на весь экран.
+
+### Шаблон 3: Двенадцать колонок (как в Bootstrap)
+
+```css
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+}
+
+.col-6 { grid-column: span 6; }
+.col-4 { grid-column: span 4; }
+.col-3 { grid-column: span 3; }
+```
+
+**Что даёт:** 12-колоночная сетка, где элемент занимает нужное количество колонок через `grid-column: span N`.
+
+## Выравнивание в Grid
+
+В Grid работают **те же свойства выравнивания**, что в Flexbox, но с учётом **двух осей**.
+
+**Выравнивание контента по сетке:**
+
+```css
+.container {
+  justify-content: center;  /* колонки по центру */
+  align-content: center;    /* строки по центру */
+}
+```
+
+**Выравнивание элементов внутри ячеек:**
+
+```css
+.container {
+  justify-items: center;    /* по горизонтали */
+  align-items: center;      /* по вертикали */
+}
+```
+
+**Сокращение для обоих:**
+
+```css
+place-items: center;   /* = align-items + justify-items */
+place-content: center; /* = align-content + justify-content */
+```
+
+
+## Частые ошибки
+
+**1. Забыли `display: grid`.** Все свойства Grid не работают, если контейнер не стал grid-контейнером.
+
+**2. Используют `margin` вместо `gap`.** `gap` не даёт лишних отступов по краям. Всегда предпочитайте его.
+
+**3. `minmax(250px, 1fr)` без `auto-fit`.** Тогда сетка всегда будет **одна колонка** заданной ширины. Нужно `repeat(auto-fit, ...)`.
+
+**4. Путают `justify-content` и `justify-items`.** Первое — **контент по всей сетке**, второе — **элементы внутри ячеек**.
+
+**5. Задают `grid-template-columns` только для одного элемента.** Grid применяется к **контейнеру**, а не к детям.
+
+## Итог
+
+CSS Grid не требует заучивания 20 свойств. Достаточно помнить:
+
+- **`display: grid`** — включает Grid
+- **`grid-template-columns: repeat(auto-fit, minmax(250px, 1fr))`** — адаптивная сетка
+- **`gap`** — отступы между элементами
+- **`grid-template-areas`** — макет текстом
+
+**Правило выбора:** одномерная задача — Flexbox. Двумерная — Grid.
+
+Подробнее про Flexbox — в отдельной статье: [Что такое Flexbox и как его использовать](/blog/chto-takoe-flexbox-i-kak-ego-ispolzovat). А если нужно отцентрировать блок — [Как отцентрировать блок по вертикали и горизонтали в CSS](/blog/kak-otcentrirovat-blok-v-css).

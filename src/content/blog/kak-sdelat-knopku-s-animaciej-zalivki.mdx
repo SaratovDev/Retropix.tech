@@ -1,0 +1,744 @@
+---
+title: "Как сделать кнопку с анимацией заливки на CSS"
+description: "Пошагово разбираю, как сделать кнопку с заливкой слева направо на CSS. С живыми демо каждого шага, объяснением и финальным кодом."
+pubDate: 2026-10-23
+cover: "/images/blog/kak-sdelat-knopku-s-animaciej-zalivki-cover.png"
+coverAlt: "Кнопка с оранжевой заливкой при наведении"
+tags: ["html-css", "features", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Кнопка с заливкой** — приём, который делает интерфейс живым. При наведении кнопка «наполняется» цветом слева направо — это заметно, приятно и запоминается.
+
+Именно так работает **кнопка на этом сайте**. В статье разберу её **пошагово**: от простого прямоугольника до финальной версии с анимацией стрелки. Каждый шаг — **живое демо** прямо в тексте.
+
+## Что получится в итоге
+
+Финальная кнопка выглядит так:
+
+<LiveDemo
+  title="Финальная кнопка"
+  height={200}
+  html={`
+    <a href="#" class="btn">
+      Читать блог
+      <span class="btn__arrow">→</span>
+    </a>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      background: #F5F5F3;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border: 1px solid #0A0A0A;
+      background: transparent;
+      color: #0A0A0A;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      background-image: linear-gradient(#F36223, #F36223);
+      background-repeat: no-repeat;
+      background-position: left center;
+      background-size: 0% 100%;
+      transition: color 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+                  border-color 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+                  background-size 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .btn:hover {
+      color: #F5F5F3;
+      border-color: #F36223;
+      background-size: 100% 100%;
+    }
+    .btn__arrow {
+      transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .btn:hover .btn__arrow {
+      transform: translate(4px, -4px);
+    }
+  `}
+/>
+
+
+Наводите мышку — заливка плавно растёт слева направо, текст становится светлым, стрелка уезжает вправо-вверх.
+
+
+## Что нужно знать перед чтением
+
+Статья рассчитана на **новичков**, которые уже видели HTML и CSS, но ещё не работали с псевдоэлементами и трансформациями. Если что-то непонятно — не страшно, каждое свойство разберу подробно.
+
+**Базовые понятия, которые пригодятся:**
+
+- **CSS-свойство** — правило, которое описывает, как выглядит элемент
+- **Селектор** — то, к чему применяется свойство (например, `.btn` — «всё с классом `btn`»)
+- **Псевдоэлемент** — невидимая часть элемента, которую можно стилизовать (`::before`, `::after`)
+- **Ховер** — состояние, когда мышка наведена на элемент (`:hover`)
+
+Если эти термины незнакомы — ничего страшного, дальше всё будет с примерами.
+
+**А теперь — как это сделать.**
+
+## Шаг 1. Базовая кнопка
+
+Начнём с **простого прямоугольника**. Рамка 1px, прозрачный фон, uppercase, моно-буквы — уже стильная кнопка, но **статичная**.
+
+```css
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 32px;
+  border: 1px solid #0A0A0A;
+  background: transparent;
+  color: #0A0A0A;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  cursor: pointer;
+}
+```
+
+<LiveDemo
+  title="Шаг 1 — базовая кнопка"
+  height={180}
+  html={`
+    <a href="#" class="btn">
+      Читать блог
+      <span class="btn__arrow">→</span>
+    </a>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      background: #F5F5F3;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border: 1px solid #0A0A0A;
+      background: transparent;
+      color: #0A0A0A;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  `}
+/>
+
+Разберём **каждое свойство** — что оно делает и зачем нужно.
+
+**`display: inline-flex`** — превращает кнопку во **flex-контейнер**, но она остаётся **строчным элементом**. Что это даёт: внутри кнопки можно **выравнивать элементы** (например, текст и стрелку), а снаружи она ведёт себя как обычный текст — можно ставить несколько кнопок в строку.
+
+**`align-items: center`** — выравнивает **содержимое кнопки по вертикали**. Без этого текст и стрелка могут «плавать» по высоте.
+
+**`gap: 12px`** — **отступ между элементами внутри** кнопки. Между текстом «Читать блог» и стрелкой `→` будет 12 пикселей воздуха.
+
+**`padding: 18px 32px`** — **внутренние отступы**. Сверху и снизу — 18px, слева и справа — 32px. Это **«воздух»** между текстом и рамкой.
+
+**`border: 1px solid #0A0A0A`** — **рамка**. Толщина 1 пиксель, стиль «solid» (сплошная), цвет — почти чёрный (`#0A0A0A`).
+
+**`background: transparent`** — **прозрачный фон**. Кнопка **не залита** — видна подложка под ней.
+
+**`color: #0A0A0A`** — **цвет текста**. Тот же почти-чёрный.
+
+**`font-family: system-ui, sans-serif`** — **шрифт**. `system-ui` — системный шрифт (например, San Francisco на macOS, Segoe UI на Windows). `sans-serif` — запасной вариант, если первый не найдётся.
+
+**`font-size: 14px`** — **размер шрифта**.
+
+**`font-weight: 600`** — **жирность**. 600 — полужирный (обычный — 400, жирный — 700).
+
+**`text-transform: uppercase`** — **все буквы становятся заглавными**. В HTML пишем «Читать блог», на экране видим «ЧИТАТЬ БЛОГ».
+
+**`letter-spacing: 0.05em`** — **разрядка между буквами**. `0.05em` — примерно 5% от размера шрифта. Делает текст **воздушнее** и легче читается в uppercase.
+
+**`text-decoration: none`** — **убирает подчёркивание** у ссылки. По умолчанию `<a>` подчёркивается — это выглядит плохо для кнопки.
+
+**`cursor: pointer`** — **курсор становится «ручкой»** при наведении. Это **намёк** пользователю: «здесь можно кликнуть».
+
+## Шаг 2. Добавляем слой заливки
+
+**Идея шага:** добавить **невидимый слой** под текстом кнопки, который потом **будет заливать** кнопку оранжевым.
+
+Для этого используем **псевдоэлемент `::before`** — это **виртуальная часть** элемента, которой **нет в HTML**, но её **можно стилизовать** через CSS. Псевдоэлемент **не виден сам по себе**, но если задать ему фон — **будет видно**.
+
+**Что добавляем:**
+
+```css
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #F36223;
+  z-index: -1;
+}
+```
+
+**Что получилось:** кнопка **полностью оранжевая**. Но это ещё **не анимация** — просто залитый блок.
+
+<LiveDemo
+  title="Шаг 2 — заливка есть, но статичная"
+  height={180}
+  html={`
+    <a href="#" class="btn">
+      Читать блог
+      <span class="btn__arrow">→</span>
+    </a>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      background: #F5F5F3;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border: 1px solid #0A0A0A;
+      color: #0A0A0A;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #F36223;
+      z-index: -1;
+    }
+  `}
+/>
+
+**Разбор по строкам:**
+
+**На `.btn`:**
+
+- **`position: relative`** — говорит кнопке: «будь точкой отсчёта для **абсолютно спозиционированных** детей». Без этого `::before` **не сможет встать на место кнопки** — он улетит в начало страницы.
+
+- **`overflow: hidden`** — **обрезает всё, что выходит за пределы** кнопки. На этом шаге ничего не выходит, но **на следующем** заливка будет **стартовать за краем** — и это свойство **не даст ей вылезти**.
+
+**На `.btn::before`:**
+
+- **`content: ''`** — **обязательное свойство** для псевдоэлемента. Без него `::before` **не отрисуется** — браузер просто его проигнорирует. Пустая строка — потому что **внутри не нужно текста**, только фон.
+
+- **`position: absolute`** — **вырывает элемент из потока**. Он **не влияет на размеры** других элементов и **позиционируется относительно** ближайшего родителя с `position: relative` — то есть **относительно кнопки**.
+
+- **`inset: 0`** — **сокращение** для `top: 0; right: 0; bottom: 0; left: 0`. Растягивает псевдоэлемент **на всю площадь кнопки**. Это **современное свойство** — работает во всех браузерах с 2021 года.
+
+- **`background: #F36223`** — **оранжевый фон**. Это **наш акцентный цвет**.
+
+- **`z-index: -1`** — **отправляет псевдоэлемент назад**. Он оказывается **за текстом** кнопки, но **над фоном страницы**. Без этого текст **перекроется заливкой** и станет невидимым.
+
+**Что произошло:** кнопка **полностью оранжевая**. Текст виден, потому что **лежит поверх** заливки. Но это **ещё не анимация** — заливка **статичная**.
+
+
+
+## Шаг 3. Прячем заливку за краем
+
+**Идея шага:** заливка **есть**, но её **не видно**. Мы **сдвигаем** её **влево за пределы кнопки**.
+
+**Что добавляем:**
+
+```css
+.btn::before {
+  transform: translateX(-101%);
+}
+```
+
+**Разбор:**
+
+- **`transform`** — свойство для **изменения положения, размера или наклона** элемента. Работает **плавно** и **быстро** (рендерится на GPU, а не на CPU).
+
+- **`translateX(-101%)`** — **сдвиг по оси X (горизонталь) на -101%**. `-101%` — это **немного больше собственной ширины** влево. То есть **элемент уходит за левый край кнопки**.
+
+**Почему −101%, а не −100%:** потому что **на некоторых экранах** из-за **субпиксельного рендеринга** может остаться **тонкая оранжевая полоска** у левого края кнопки. **1% запаса** — устраняет эту проблему.
+
+**Что произошло:** кнопка снова **прозрачная**. Заливка **«ждёт» за левым краем** — готова «въехать» при ховере.
+
+**Что получилось:** кнопка снова прозрачная. Заливка **«ждёт» за левым краем**.
+
+<LiveDemo
+  title="Шаг 3 — заливка спрятана за краем"
+  height={180}
+  html={`
+    <a href="#" class="btn">
+      Читать блог
+      <span class="btn__arrow">→</span>
+    </a>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      background: #F5F5F3;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border: 1px solid #0A0A0A;
+      color: #0A0A0A;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #F36223;
+      z-index: -1;
+      transform: translateX(-101%);
+    }
+  `}
+/>
+
+## Шаг 4. Оживляем через ховер
+
+**Идея шага:** при **наведении мышки** заливка **въезжает в кнопку**.
+
+**Что добавляем:**
+
+```css
+.btn:hover::before {
+  transform: translateX(0);
+}
+```
+
+**Разбор:**
+
+- **`:hover`** — **псевдокласс**, который срабатывает, когда **курсор мышки находится над элементом**. Это **состояние**, а не постоянное правило.
+
+- **`.btn:hover::before`** — селектор читается так: «**псевдоэлемент `::before`** внутри `.btn`, **когда на `.btn` наведена мышка**».
+
+- **`transform: translateX(0)`** — **сброс трансформации**. Элемент возвращается в **исходное положение** — то есть **занимает всю площадь кнопки**.
+
+
+
+<LiveDemo
+  title="Шаг 4 — резкое переключение"
+  height={180}
+  html={`
+    <a href="#" class="btn">
+      Читать блог
+      <span class="btn__arrow">→</span>
+    </a>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      background: #F5F5F3;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border: 1px solid #0A0A0A;
+      color: #0A0A0A;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #F36223;
+      z-index: -1;
+      transform: translateX(-101%);
+    }
+    .btn:hover::before {
+      transform: translateX(0);
+    }
+  `}
+/>
+
+**Что получилось:** заливка **мгновенно** перескакивает. Работает, но **некрасиво** — нет плавности.
+
+## Шаг 5. Плавность — добавляем transition
+
+**Магия в одной строке.** Добавляем к псевдоэлементу **плавный переход**:
+
+```css
+.btn::before {
+  transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+```
+
+**Что такое `cubic-bezier(0.65, 0, 0.35, 1)`:** это **функция плавности**. Стартует медленно, разгоняется в середине, плавно замедляется к концу. **Стандарт для хороших интерфейсов.**
+
+<div class="callout">
+  <span class="callout__label">Почему не ease</span>
+  <p><code>ease</code> и <code>ease-in-out</code> работают, но выглядят «вяло». <code>cubic-bezier(0.65, 0, 0.35, 1)</code> даёт ощущение <strong>энергии</strong> — заливка идёт уверенно и приятно тормозит.</p>
+</div>
+
+**Дополнительно — меняем цвет текста и рамки:**
+
+```css
+.btn {
+  transition: color 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+              border-color 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn:hover {
+  color: #F5F5F3;
+  border-color: #F36223;
+}
+```
+
+<LiveDemo
+  title="Шаг 5 — плавная заливка"
+  height={180}
+  html={`
+    <a href="#" class="btn">
+      Читать блог
+      <span class="btn__arrow">→</span>
+    </a>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      background: #F5F5F3;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border: 1px solid #0A0A0A;
+      color: #0A0A0A;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: color 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+                  border-color 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #F36223;
+      z-index: -1;
+      transform: translateX(-101%);
+      transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .btn:hover {
+      color: #F5F5F3;
+      border-color: #F36223;
+    }
+    .btn:hover::before {
+      transform: translateX(0);
+    }
+  `}
+/>
+
+**Вуаля!** Наведите — заливка плавно растёт слева направо, текст становится светлым. **При снятии ховера** — заливка **утекает обратно влево**.
+
+## Шаг 6. Финальный аккорд — анимация стрелки
+
+**Последняя деталь** — стрелка. При ховере она **уезжает вправо-вверх**. Это **микродвижение**, которое делает кнопку «живой».
+
+```css
+.btn__arrow {
+  transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn:hover .btn__arrow {
+  transform: translate(4px, -4px);
+}
+```
+
+**Что произошло:** стрелка **сдвинулась на 4px вправо и на 4px вверх** — как будто «улетает» из кнопки. Направление вверх-вправо **символизирует рост и движение**.
+
+<LiveDemo
+  title="Шаг 6 — финальная кнопка"
+  height={200}
+  html={`
+    <a href="#" class="btn">
+      Читать блог
+      <span class="btn__arrow">→</span>
+    </a>
+  `}
+  css={`
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      background: #F5F5F3;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 32px;
+      border: 1px solid #0A0A0A;
+      color: #0A0A0A;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: color 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+                  border-color 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #F36223;
+      z-index: -1;
+      transform: translateX(-101%);
+      transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .btn:hover {
+      color: #F5F5F3;
+      border-color: #F36223;
+    }
+    .btn:hover::before {
+      transform: translateX(0);
+    }
+    .btn__arrow {
+      transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .btn:hover .btn__arrow {
+      transform: translate(4px, -4px);
+    }
+  `}
+/>
+
+## Направление заливки — как поменять
+
+**По умолчанию** у нас заливка идёт **слева направо** — потому что `translateX(-101%)` стартует **слева** и движется **вправо**.
+
+**Если хочется справа налево** — можно использовать **альтернативный подход через `background-size`**:
+
+```css
+.btn {
+  background-image: linear-gradient(#F36223, #F36223);
+  background-repeat: no-repeat;
+  background-position: right center;   /* старт справа */
+  background-size: 0% 100%;             /* ширина 0 */
+  transition: background-size 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+              color 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn:hover {
+  color: #F5F5F3;
+  background-size: 100% 100%;            /* растянуть на всю ширину */
+}
+```
+
+**Что это даёт:** заливка **растёт от правого края** к левому. **Плюс:** не нужен `::before` — работает **через фон кнопки**.
+
+**Мой выбор** — вариант с `::before`. Он **универсальнее** — можно **легко менять направление**, комбинировать с другими эффектами, добавлять слои.
+
+## Доступность и `prefers-reduced-motion`
+
+**Важный момент.** Некоторые пользователи **плохо переносят анимации** — вестибулярные расстройства, мигрени, эпилепсия.
+
+**Хорошая практика** — **отключать анимации**, если пользователь просил об этом в системных настройках:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn::before,
+  .btn__arrow {
+    transition-duration: 0.01ms;
+  }
+}
+```
+
+**Что это делает:** все переходы становятся **мгновенными** — эффект **всё равно работает**, но без анимации. Пользователь **всё равно видит заливку** — просто она **появляется сразу**.
+
+<div class="callout">
+  <span class="callout__label">Не пропускайте</span>
+  <p><code>prefers-reduced-motion</code> — не прихоть. Это <strong>сигнал от системы</strong>, что пользователь просил уменьшить движение. Игнорировать его — то же самое, что не добавлять <code>alt</code> к картинкам.</p>
+</div>
+
+## Итоговый код
+
+**Соберём всё вместе:**
+
+```css
+.btn {
+  /* базовое оформление */
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 32px;
+  border: 1px solid #0A0A0A;
+  background: transparent;
+  color: #0A0A0A;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  cursor: pointer;
+
+  /* для псевдоэлемента */
+  position: relative;
+  overflow: hidden;
+
+  /* плавность цвета и рамки */
+  transition: color 0.3s cubic-bezier(0.65, 0, 0.35, 1),
+              border-color 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #F36223;
+  z-index: -1;
+  transform: translateX(-101%);
+  transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn:hover {
+  color: #F5F5F3;
+  border-color: #F36223;
+}
+
+.btn:hover::before {
+  transform: translateX(0);
+}
+
+.btn__arrow {
+  transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn:hover .btn__arrow {
+  transform: translate(4px, -4px);
+}
+
+/* Доступность */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn::before,
+  .btn__arrow {
+    transition-duration: 0.01ms;
+  }
+}
+```
+
+**HTML:**
+
+```html
+<a href="/blog" class="btn">
+  Читать блог
+  <span class="btn__arrow">→</span>
+</a>
+```
+
+## Где это использовать
+
+Кнопка с заливкой **работает везде**, где нужно **заметное действие**:
+
+- **CTA на лендинге** — «Оставить заявку», «Купить»
+- **Форма** — кнопка «Отправить»
+- **Навигация** — реже, но можно
+- **Ссылка-обёртка** — карточка товара с заливкой всей карточки
+
+**Не стоит использовать** для **вторичных кнопок** — иначе **теряется иерархия**. Если все кнопки с заливкой — глазу не за что зацепиться.
+
+**Совет:** одна **главная кнопка с заливкой** на блок, остальные — **простые рамки**.
+
+## Частые ошибки
+
+- **`overflow: hidden` на `.btn`** — обязателен. Без него **заливка видна** за пределами кнопки при анимации
+- **Забыли `z-index: -1`** на `::before` — заливка **перекрывает текст**
+- **`translateX(-100%)` вместо `-101%`** — иногда **тонкая полоска** у левого края остаётся
+- **`transition: all`** — работает, но **медленнее** и неявно. Указывайте **точные свойства**
+- **`z-index: -1` без `position: relative`** — **не сработает**. Псевдоэлемент уйдёт за пределы кнопки
+
+## Итог
+
+Кнопка с заливкой — **простой, но мощный** приём. **Формула:**
+
+1. **`position: relative` + `overflow: hidden`** на кнопке
+2. **`::before`** с оранжевым фоном
+3. **`translateX(-101%)`** — спрятать за краем
+4. **`transition`** — плавность
+5. **`:hover::before { transform: translateX(0) }`** — заливка появляется
+6. **`color`** — на светлый при ховере
+7. **Стрелка** — микродвижение для «жизни»
+
+**Где посмотреть живьём:** эта кнопка используется **по всему сайту** — на главной в hero, в секциях услуг, в футере. Открой [главную страницу](/) и наведи на **любую кнопку**.
+
+А если хочешь узнать, как мы применяем такие кнопки в **реальных проектах** — читайте [структуру лендинга](/blog/struktura-lendinga).

@@ -1,0 +1,346 @@
+---
+title: "Контент-коллекции в Astro: полное руководство"
+description: "Разбираю Content Collections в Astro: настройка, Zod-схема, getCollection, динамические страницы, MDX и ссылки между коллекциями."
+pubDate: 2026-10-28
+cover: "/images/blog/content-collections-v-astro-cover.png"
+coverAlt: "Структура Content Collections в Astro с файлами Markdown"
+tags: ["astrojs", "beginners"]
+draft: false
+---
+
+import LiveDemo from '../../components/LiveDemo.astro';
+
+**Content Collections** — это встроенная система Astro для управления контентом. Она превращает папку с Markdown-файлами в **типизированный источник данных**, который можно запрашивать из любого компонента.
+
+Без Content Collections вы бы вручную читали файлы, парсили frontmatter и надеялись, что нигде не ошиблись в поле. С ними — Astro **проверяет всё за вас** ещё на этапе сборки.
+
+## Что вы узнаете
+
+- [Что такое Content Collections](#что-такое-content-collections)
+- [Настройка коллекции](#настройка-коллекции)
+- [Zod-схема](#zod-схема)
+- [Запрос данных: getCollection](#запрос-данных)
+- [Динамические страницы](#динамические-страницы)
+- [Ссылки между коллекциями](#ссылки-между-коллекциями)
+- [Встроенные загрузчики: glob и file](#встроенные-загрузчики)
+
+## Что такое Content Collections
+
+**Коллекция** — это **набор однотипных данных**. Например, все статьи блога, все товары магазина или все авторы сайта.
+
+**Как это выглядит в проекте:**
+
+```
+src/content/
+├── blog/              ← коллекция "blog"
+│   ├── pervaya-statya.md
+│   ├── vtoraya-statya.md
+│   └── tretya-statya.md
+└── authors/           ← коллекция "authors"
+    └── authors.json
+```
+
+**Зачем нужны коллекции:**
+
+1. **Типизация** — Astro знает, какие поля есть у каждой статьи
+2. **Валидация** — если вы забыли `title` или ошиблись в дате, сборка **упадёт с понятной ошибкой**
+3. **Автодополнение** — в редакторе появляются подсказки по полям
+4. **Единый API** — `getCollection()` и `getEntry()` для запроса данных
+
+До Astro 5 коллекции определялись в `src/content/config.ts`. **С версии 5.0** — в `src/content.config.ts`, и каждая коллекция требует **загрузчик** (loader) [citation:1][citation:15].
+
+## Настройка коллекции
+
+Создайте файл **`src/content.config.ts`** в корне проекта (не внутри `src/content/`):
+
+```ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog };
+```
+
+**Разберём по строкам:**
+
+**`import { defineCollection, z } from 'astro:content'`** — импортируем функции для работы с коллекциями. `z` — это Zod, библиотека для валидации данных [citation:1].
+
+**`import { glob } from 'astro/loaders'`** — загрузчик файлов из папки. Встроенный в Astro [citation:5].
+
+**`defineCollection({ ... })`** — определяет коллекцию с двумя параметрами:
+- **`loader`** — откуда брать данные
+- **`schema`** — как валидировать (Zod-схема)
+
+**`glob({ pattern: '**/*.md', base: './src/content/blog' })`** — загрузчик `glob` ищет все `.md`-файлы в папке `src/content/blog/` [citation:5].
+
+**`export const collections = { blog }`** — экспортируем коллекции, чтобы Astro их зарегистрировал [citation:19].
+
+<div class="callout">
+  <span class="callout__label">Важно</span>
+  <p>Начиная с Astro 5, файл конфига называется <strong><code>content.config.ts</code></strong> и лежит в <strong><code>src/</code></strong>, а не <strong><code>src/content/</code></strong>. Старый путь <code>src/content/config.ts</code> устарел [citation:17].</p>
+</div>
+
+## Zod-схема
+
+**Zod** — это библиотека для описания структуры данных. В контексте Astro она проверяет, что **каждый файл** в коллекции имеет правильные поля [citation:13].
+
+**Основные типы Zod:**
+
+| Тип | Что проверяет | Пример |
+|---|---|---|
+| `z.string()` | Строка | `title: z.string()` |
+| `z.number()` | Число | `views: z.number()` |
+| `z.boolean()` | true/false | `draft: z.boolean()` |
+| `z.date()` | Дата | `pubDate: z.date()` |
+| `z.array()` | Массив | `tags: z.array(z.string())` |
+| `z.enum()` | Одно из значений | `type: z.enum(['post', 'page'])` |
+
+**Полезные модификаторы:**
+
+- **`.optional()`** — поле необязательное
+- **`.default(value)`** — значение по умолчанию
+- **`.max(160)`** — максимальная длина строки
+- **`.min(1)`** — минимальная длина
+- **`z.coerce.date()`** — превращает строку в дату (удобно для `pubDate: 2026-10-28`)
+
+**Пример полной схемы:**
+
+```ts
+schema: z.object({
+  title: z.string().min(1).max(70),
+  description: z.string().min(50).max(160),
+  pubDate: z.coerce.date(),
+  updatedDate: z.coerce.date().optional(),
+  cover: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  draft: z.boolean().default(false),
+}),
+```
+
+**Что это даёт:** если в статье забыть `title` или указать его длиной 100 символов — Astro **не соберёт проект** и покажет **точную ошибку** [citation:13].
+
+## Запрос данных
+
+Для запроса данных используются две функции из `astro:content` [citation:7]:
+
+- **`getCollection()`** — возвращает **все записи** коллекции (или отфильтрованные)
+- **`getEntry()`** — возвращает **одну запись** по ID
+
+**Пример — получить все статьи блога:**
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+---
+
+<ul>
+  {posts.map((post) => (
+    <li>
+      <a href={`/blog/${post.id}`}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>
+```
+
+**Разберём:**
+
+**`getCollection('blog')`** — возвращает **массив записей** коллекции `blog`. Каждая запись имеет:
+- **`id`** — уникальный идентификатор (обычно из имени файла)
+- **`data`** — объект с полями из frontmatter
+- **`body`** — сырой Markdown (если нужен)
+
+**`post.data.title`** — доступ к полю `title` из frontmatter. **TypeScript знает**, что там строка — благодаря Zod-схеме.
+
+**Пример — с фильтрацией:**
+
+```astro
+---
+const posts = await getCollection('blog', ({ data }) => {
+  return !data.draft; // только опубликованные
+});
+---
+```
+
+**Второй аргумент `getCollection`** — это **функция-фильтр**. Она получает запись и возвращает `true`, если её нужно включить [citation:7].
+
+## Динамические страницы
+
+**Динамические страницы** генерируются **по одной на каждую запись** коллекции. Например, `/blog/pervaya-statya`, `/blog/vtoraya-statya` и так далее.
+
+**Создайте файл** `src/pages/blog/[slug].astro`:
+
+```astro
+---
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<article>
+  <h1>{post.data.title}</h1>
+  <time>{post.data.pubDate.toLocaleDateString('ru-RU')}</time>
+  <Content />
+</article>
+```
+
+**Что происходит:**
+
+**`getStaticPaths()`** — Astro вызывает эту функцию **на этапе сборки**. Она должна вернуть **массив путей** и **данных** для каждого [citation:16].
+
+**`params: { slug: post.id }`** — URL страницы будет `/blog/{post.id}`. Если файл называется `pervaya-statya.md`, то `post.id` = `pervaya-statya` [citation:16].
+
+**`props: { post }`** — данные, которые попадут в `Astro.props` при рендере страницы.
+
+**`render(post)`** — превращает Markdown в HTML-компонент `Content`. В новых версиях Astro **нельзя** вызывать `post.render()` — только через `render(post)` [citation:17].
+
+**`<Content />`** — вставляет отрендеренный Markdown в разметку.
+
+<div class="callout">
+  <span class="callout__label">Обратите внимание</span>
+  <p>В Astro 5 <strong>поле <code>slug</code> удалено</strong>. Раньше запись имела и <code>id</code>, и <code>slug</code>. Теперь <code>id</code> — это и есть slug. Имя файла можно получить через <code>entry.filePath</code> [citation:17].</p>
+</div>
+
+## Ссылки между коллекциями
+
+**Одна из самых мощных функций** — возможность **ссылаться** на записи из другой коллекции. Например, статья ссылается на автора.
+
+**Сначала создайте коллекцию авторов:**
+
+```ts
+const authors = defineCollection({
+  loader: file('src/content/authors.json'),
+  schema: z.object({
+    name: z.string(),
+    bio: z.string(),
+    avatar: z.string().optional(),
+  }),
+});
+```
+
+**Теперь в схеме блога добавьте ссылку:**
+
+```ts
+import { reference } from 'astro:content';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string(),
+    author: reference('authors'), // ← ссылка на коллекцию authors
+  }),
+});
+```
+
+**`reference('authors')`** — говорит Astro: «это поле — ID записи из коллекции `authors`» [citation:2][citation:7].
+
+**В frontmatter статьи:**
+
+```yaml
+---
+title: "Моя статья"
+author: "vadim"
+---
+```
+
+**При запросе** вы можете получить данные автора:
+
+```astro
+---
+const post = await getEntry('blog', 'pervaya-statya');
+const author = await getEntry(post.data.author);
+---
+
+<p>Автор: {author.data.name}</p>
+```
+
+**`getEntry(post.data.author)`** — получает запись автора по ссылке из статьи [citation:7].
+
+## Встроенные загрузчики
+
+Astro предоставляет **два встроенных загрузчика** для локальных данных [citation:5]:
+
+### glob() — для папок с файлами
+
+```ts
+glob({ pattern: '**/*.md', base: './src/content/blog' })
+```
+
+**Когда использовать:** когда **каждая запись — отдельный файл** (статьи, страницы) [citation:1].
+
+**Что поддерживает:** Markdown, MDX, Markdoc, JSON, YAML [citation:5].
+
+### file() — для одного файла с данными
+
+```ts
+file('src/content/authors.json')
+```
+
+**Когда использовать:** когда **все записи в одном файле** (список авторов, категорий, товаров) [citation:1].
+
+**Формат файла:** массив объектов с уникальным полем `id` [citation:5].
+
+**Пример `authors.json`:**
+
+```json
+[
+  { "id": "vadim", "name": "Вадим Шабанов", "bio": "Веб-разработчик" },
+  { "id": "ivan", "name": "Иван Петров", "bio": "Фронтенд-разработчик" }
+]
+```
+
+## Что дальше
+
+**Content Collections — основа любого контентного сайта на Astro.** Они дают:
+
+- **Типизацию** — меньше ошибок
+- **Валидацию** — сборка упадёт, если что-то не так
+- **Удобный API** — `getCollection()` и `getEntry()`
+- **Ссылки между коллекциями** — для связей вроде статья → автор
+
+**Попробуйте:** создайте коллекцию для блога, добавьте 2–3 статьи в Markdown, и вы увидите, как Astro **сразу подсказывает** все поля в редакторе.
+
+Если вы только начинаете с Astro — читайте [Как создать сайт на Astro JS с нуля](/blog/kak-sozdat-sajt-na-astro). А если хотите понять, зачем вообще нужен Astro — [Что такое Astro JS](/blog/chto-takoe-astro-js).
+
+## FAQ
+
+### Нужно ли использовать Content Collections?
+
+**Да, для контентных сайтов — обязательно.** Без них вы теряете типизацию, валидацию и удобный API. Это **главная фича Astro** для блогов и документации.
+
+### Можно ли использовать Content Collections с внешним API?
+
+**Да.** Для этого создаётся **кастомный загрузчик** (inline-функция или объект), который возвращает массив записей. Это позволяет брать данные из CMS, базы данных или API [citation:15].
+
+### Чем `getCollection` отличается от `getEntry`?
+
+**`getCollection`** возвращает **массив всех записей** коллекции. **`getEntry`** — **одну запись** по ID [citation:7].
+
+### Можно ли использовать MDX вместо Markdown?
+
+**Да.** Загрузчик `glob` поддерживает **`.mdx`-файлы**. Просто укажите в `pattern: '**/*.mdx'` [citation:5].
+
+### Что делать, если сборка падает из-за ошибки схемы?
+
+**Прочитайте ошибку.** Astro показывает **точный файл** и **поле**, которое не прошло валидацию. Исправьте frontmatter и пересоберите.

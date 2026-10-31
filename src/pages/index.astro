@@ -1,17 +1,663 @@
 ---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, AUTHOR, CATEGORIES, START_HERE, TAGLINE } from '../consts';
+import PostCard from '../components/PostCard.astro';
+import ServicesSection from '../components/ServicesSection.astro';
+import GameSection from '../components/GameSection.astro';
+import MemoryGame from '../components/MemoryGame.astro';
+import LabyrinthGame from '../components/LabyrinthGame.astro';
+import HeroSlider from '../components/HeroSlider.astro';
+import { WORK_STEPS } from '../consts';
+import { ABOUT_ME } from '../consts';
+import { LEARN_SKILLS, LEARN_COURSE } from '../consts';
+import { CASES } from '../consts';
 
+const heroSlides = [
+  { src: '/images/hero/slide-01.png', alt: 'Лендинг для клиники на Tilda' },
+  { src: '/images/hero/slide-02.png', alt: 'Корпоративный сайт на WordPress' },
+  { src: '/images/hero/slide-03.png', alt: 'Интернет-магазин на WooCommerce' },
+  { src: '/images/hero/slide-04.png', alt: 'Сайт на HTML+CSS с нуля' },
+  { src: '/images/hero/slide-05.png', alt: 'Курс с личным кабинетом' },
+];
+
+const allPosts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Сколько карточек максимум показываем в секции
+const POSTS_PER_SECTION = 8;
+
+// Сколько реальных статей берём (не больше POSTS_PER_SECTION)
+const realPosts = allPosts.slice(0, POSTS_PER_SECTION);
+
+// Сколько заглушек нужно
+const placeholderCount = Math.max(0, POSTS_PER_SECTION - realPosts.length);
+
+// Массив для рендера: реальные статьи + заглушки
+const slots = [
+  ...realPosts.map((post) => ({ type: 'post' as const, post })),
+  ...Array.from({ length: placeholderCount }, (_, i) => ({
+    type: 'placeholder' as const,
+    index: i,
+  })),
+];
+
+// Показываем секцию только если есть хотя бы одна реальная статья
+const hasPosts = realPosts.length > 0;
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE.name,
+    url: SITE.url,
+    description: SITE.description,
+    inLanguage: SITE.lang,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: AUTHOR.name,
+    url: SITE.url,
+    jobTitle: AUTHOR.jobTitle,
+    knowsAbout: AUTHOR.knowsAbout,
+    sameAs: AUTHOR.sameAs,
+  },
+
+  {
+  '@context': 'https://schema.org',
+  '@type': 'Game',
+  name: 'Мемори со скидкой 15%',
+  description:
+    'Открывайте парные карточки с эмодзи. Соберите все 8 пар за 3 ошибки или меньше — получите скидку 15% на любую услугу.',
+  gameLocation: {
+    '@type': 'WebPage',
+    url: SITE.url,
+  },
+  offers: {
+    '@type': 'Offer',
+    name: 'Скидка 15% на услугу',
+    price: '0',
+    priceCurrency: 'RUB',
+  },
+},
+{
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'Как я работаю: процесс разработки сайта',
+  description: 'Прозрачный процесс разработки сайта — от знакомства до запуска и поддержки.',
+  step: WORK_STEPS.map((step, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name: step.title,
+    text: step.description,
+  })),
+},
+
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="Создание сайтов на Tilda, WordPress и HTML+CSS — от нуля до запуска"
+  description={SITE.description}
+  schema={schema}
+>
+
+<!-- ============================================ -->
+<!-- HERO                                          -->
+<!-- ============================================ -->
+<section class="hero">
+  <div class="container hero__grid">
+    <div class="hero__content">
+      <span class="label hero__label">Веб-разработка · Обучение</span>
+
+      <h1 class="hero__title">
+  Разработка сайтов на
+  <span class="hero__title-dynamic">
+    <span class="typewriter">
+      <span class="typewriter__text" data-typewriter-text>Tilda</span>
+      <span class="typewriter__cursor" aria-hidden="true"></span>
+    </span>
+  </span>
+</h1>
+
+      <p class="hero__subtitle">
+        Выполняю полный цикл разработки сайта — от прототипа
+        до финального запуска. От вас только запрос и требования.
+      </p>
+
+      <div class="hero__actions">
+        <a href="/contact" class="btn">
+          Заказать сайт
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+        <a href="/services" class="btn">
+          Все услуги
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+
+    <HeroSlider slides={heroSlides} autoplayDelay={3000} />
+  </div>
+</section>
+
+<section class="for-whom">
+  <div class="container">
+    <div class="for-whom__box">
+      <span class="label for-whom__label">Кому это полезно</span>
+
+      <div class="for-whom__list">
+        <!-- Карточка 1 -->
+        <article class="for-whom-card">
+          <div class="for-whom-card__inner">
+            <span class="for-whom-card__number" aria-hidden="true">01</span>
+
+            <div class="for-whom-card__content">
+              <h2 class="for-whom-card__title">
+                Хочешь научиться делать сайты сам?
+              </h2>
+
+              <p class="for-whom-card__description">
+                Бесплатные статьи, гайды, разборы. От HTML и Tilda до
+                Astro JS и WordPress — без воды и оплаты. Начни с основ
+                и дойди до первого проекта бесплатно и без напряга.
+              </p>
+
+              <a href="/blog" class="btn for-whom-card__btn">
+                Читать обучающие статьи
+                <span class="btn__arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Карточка 2 -->
+        <article class="for-whom-card">
+          <div class="for-whom-card__inner">
+            <span class="for-whom-card__number" aria-hidden="true">02</span>
+
+            <div class="for-whom-card__content">
+              <h2 class="for-whom-card__title">
+                Нужен готовый сайт под ключ?
+              </h2>
+
+              <p class="for-whom-card__description">
+                Разработка на Tilda, WordPress, HTML+CSS, Astro JS.
+                Лендинги, корпоративные сайты, магазины. Прозрачные
+                цены, поддержка.
+              </p>
+
+              <a href="/contact" class="btn for-whom-card__btn">
+                Заказать разработку сайта
+                <span class="btn__arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ============================================ -->
+<!-- ИГРА И СКИДКА                                 -->
+<!-- ============================================ -->
+<GameSection />
+
+<!-- ============================================ -->
+<!-- УСЛУГИ                                        -->
+<!-- ============================================ -->
+<section class="services-preview">
+  <div class="container">
+    <h2 class="services-preview__title">Услуги</h2>
+    <p class="services-preview__lead">
+      Разработка сайтов под ключ: от лендинга на Tilda до интернет-магазина
+      на WordPress. Прозрачные цены, чёткие сроки.
+    </p>
+
+    <ServicesSection variant="full" showAllLink={true} />
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- КЕЙСЫ                                        -->
+<!-- ============================================ -->
+<section class="cases" data-cases>
+  <div class="container">
+    <span class="label cases__label">Кейсы</span>
+
+    <h2 class="cases__title">
+      Реальные проекты — с задачей и результатом
+    </h2>
+
+    <div class="cases__grid">
+      {CASES.map((c, i) => (
+        <article class="case-card" data-case-card data-case-id={c.id} data-index={i}>
+          <button
+            type="button"
+            class="case-card__inner"
+            aria-label={`Открыть кейс: ${c.title}`}
+            data-case-open={c.id}
+          >
+            <div class="case-card__cover">
+              <img
+                src={c.cover}
+                alt={c.coverAlt}
+                width="800"
+                height="800"
+                loading="lazy"
+              />
+              <span class="case-card__cover-placeholder" aria-hidden="true">
+                [СКРИНШОТ]
+              </span>
+              <span class="case-card__arrow" aria-hidden="true">→</span>
+            </div>
+
+            <div class="case-card__info">
+              <h3 class="case-card__title">{c.title}</h3>
+              <p class="case-card__meta">
+                <span>{c.stack}</span>
+                <span class="case-card__dot" aria-hidden="true">·</span>
+                <span>{c.year}</span>
+              </p>
+            </div>
+          </button>
+        </article>
+      ))}
+    </div>
+
+    <div class="cases__footer">
+      <a href="/contact" class="btn">
+        Хочу так же
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Модалка кейса -->
+<div class="case-modal" data-case-modal hidden>
+  <div class="case-modal__overlay" data-case-close></div>
+
+  <div
+    class="case-modal__content"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="case-modal-title"
+  >
+    <button
+      type="button"
+      class="case-modal__close"
+      aria-label="Закрыть"
+      data-case-close
+      data-lenis-prevent
+    >✕</button>
+
+    <div class="case-modal__body" data-case-modal-body>
+      {/* Содержимое генерируется JS */}
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- КТО Я                                         -->
+<!-- ============================================ -->
+<section class="about-me" data-about-me>
+  <div class="container">
+    <span class="label about-me__label">Кто я</span>
+
+    <div class="about-me__grid">
+      <!-- Фото -->
+      <div class="about-me__photo-wrap">
+        <div class="about-me__photo">
+          <img
+            src={ABOUT_ME.photo}
+            alt={ABOUT_ME.photoAlt}
+            width="600"
+            height="750"
+            loading="lazy"
+          />
+          <span class="about-me__photo-placeholder" aria-hidden="true">
+            [ФОТО]
+          </span>
+        </div>
+      </div>
+
+      <!-- Текст -->
+      <div class="about-me__content">
+        <p class="about-me__intro">{ABOUT_ME.intro}</p>
+        <p class="about-me__description">{ABOUT_ME.description}</p>
+
+        <!-- Цифры -->
+        <div class="about-me__stats" data-about-stats>
+          {ABOUT_ME.stats.map((stat) => (
+            <div class="about-stat">
+              <span class="about-stat__value">
+                <span
+                  data-about-stat-value
+                  data-value={stat.value}
+                >0</span><span class="about-stat__suffix">{stat.suffix}</span>
+              </span>
+              <span class="about-stat__label">{stat.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <p class="about-me__personal">{ABOUT_ME.personal}</p>
+
+        <a href="/about" class="btn about-me__btn">
+          Подробнее обо мне
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+ <!-- ============================================ -->
+<!-- СВЕЖИЕ СТАТЬИ                                 -->
+<!-- ============================================ -->
+<section class="latest-posts">
+  <div class="container">
+    <h2 class="sr-only">Полезное из блога</h2>
+    <span class="label latest-posts__label">Полезное из блога</span>
+
+    {!hasPosts ? (
+      <p class="latest-posts__empty">
+        Скоро здесь появятся статьи — сейчас работаю над первыми материалами.
+      </p>
+    ) : (
+      <>
+        <div class="latest-posts__grid">
+          {slots.map((slot) =>
+            slot.type === 'post' ? (
+              <PostCard post={slot.post} />
+            ) : (
+              <article class="post-card post-card--placeholder">
+                <div class="post-card__link">
+                  <div class="post-card__cover">
+                    <span class="post-card__letter" aria-hidden="true">?</span>
+                  </div>
+                  <span class="post-card__date">Скоро</span>
+                  <h3 class="post-card__title">Тут скоро будет статья</h3>
+                  <p class="post-card__description">
+                    Готовлю материал — скоро опубликую.
+                  </p>
+                </div>
+              </article>
+            )
+          )}
+        </div>
+
+        <div class="latest-posts__footer">
+          <a href="/blog" class="btn">
+            Все статьи
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </>
+    )}
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- КАК Я РАБОТАЮ                                -->
+<!-- ============================================ -->
+<section class="work-steps">
+  <div class="container">
+    <span class="label work-steps__label">Как я работаю</span>
+
+    <h2 class="work-steps__title">
+      Прозрачный процесс — вы знаете, что происходит на каждом этапе
+    </h2>
+
+    <div class="work-steps__list" data-work-steps>
+      {WORK_STEPS.map((step, i) => (
+        <div class="work-step" data-work-step>
+          <button
+            type="button"
+            class="work-step__head"
+            aria-expanded={i === 0 ? 'true' : 'false'}
+            data-work-step-toggle
+          >
+            <span class="work-step__number">{step.number}</span>
+            <span class="work-step__title">{step.title}</span>
+            <span class="work-step__icon" aria-hidden="true"></span>
+          </button>
+
+          <div class="work-step__body">
+            <div class="work-step__body-inner">
+              <p class="work-step__description">{step.description}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="work-steps__footer">
+      <a href="/contact" class="btn">
+        Обсудить проект
+        <span class="btn__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="start-here">
+  <div class="container">
+    <div class="start-here__grid">
+      <!-- Левая колонка: заголовок + шаги -->
+      <div class="start-here__main">
+        <span class="label start-here__label">С чего начать</span>
+
+        <h2 class="start-here__title">
+          Путь новичка: от нуля до первого сайта
+        </h2>
+
+        <p class="start-here__lead">
+          Если вы только начинаете — вот проверенный маршрут из 7 шагов.
+          Каждый шаг — отдельная статья с подробным разбором.
+        </p>
+
+        <ol class="start-here__list" data-start-here>
+          {START_HERE.map((step, i) => (
+            <li class="start-step" data-start-step data-step-index={i}>
+              <div class="start-step__marker" aria-hidden="true">
+                <span class="start-step__dot"></span>
+                <span class="start-step__line"></span>
+              </div>
+
+              <a href={step.href} class="start-step__content">
+                <span class="start-step__number">{step.number}</span>
+
+                <div class="start-step__text">
+                  <h3 class="start-step__title">{step.title}</h3>
+                  <p class="start-step__description">{step.description}</p>
+                </div>
+
+                <span class="start-step__arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <!-- Правая колонка: прогресс-панель -->
+      <aside class="start-here__progress" data-start-progress>
+        <div class="progress-card">
+          <p class="progress-card__label">Прогресс</p>
+
+          <div class="progress-card__counter">
+            <span class="progress-card__current" data-progress-current>0</span>
+            <span class="progress-card__divider">/</span>
+            <span class="progress-card__total">{START_HERE.length}</span>
+          </div>
+
+          <div class="progress-card__bar">
+            <div class="progress-card__bar-fill" data-progress-fill></div>
+          </div>
+
+          <div class="progress-card__next" data-progress-next>
+            <p class="progress-card__next-label">Дальше</p>
+            <p class="progress-card__next-title">{START_HERE[0].title}</p>
+            <a
+              href={START_HERE[0].href}
+              class="btn progress-card__next-btn"
+              data-progress-next-link
+            >
+              Продолжить
+              <span class="btn__arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+
+          <div class="progress-card__done" data-progress-done hidden>
+            <p class="progress-card__done-label">Готово!</p>
+            <p class="progress-card__done-text">
+              Вы прошли весь путь. Пора практиковаться.
+            </p>
+            <a href="/blog/tag/beginners" class="btn">
+              Все статьи
+              <span class="btn__arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- ОБУЧЕНИЕ                                      -->
+<!-- ============================================ -->
+<section class="learn">
+  <div class="container">
+    <span class="label learn__label">Обучение</span>
+
+    <h2 class="learn__title">
+      Что можно освоить — практические навыки, которые сразу применимы в работе
+    </h2>
+
+    <!-- Карточки-навыки -->
+    <div class="learn__skills" data-learn-skills>
+      {LEARN_SKILLS.map((skill, i) => (
+        <article class="skill-card" data-skill-card data-index={i}>
+          <span class="skill-card__number">{skill.number}</span>
+          <h3 class="skill-card__title">{skill.title}</h3>
+          <p class="skill-card__description">{skill.description}</p>
+        </article>
+      ))}
+    </div>
+
+    <!-- Тизер курса -->
+    <!-- <div class="learn__course">
+      <div class="course-teaser">
+        <div class="course-teaser__badge">{LEARN_COURSE.status}</div>
+
+        <h3 class="course-teaser__title">{LEARN_COURSE.title}</h3>
+        <p class="course-teaser__description">{LEARN_COURSE.description}</p>
+
+        <form class="course-teaser__form" action="#" method="POST" data-contact-form>
+          <input type="hidden" name="source" value="course-subscribe" />
+
+          <div class="course-teaser__input-row">
+            <input
+              type="email"
+              name="email"
+              class="field__input course-teaser__input"
+              placeholder="ваш@email.ru"
+              required
+              aria-label="Email"
+            />
+            <button type="submit" class="btn course-teaser__submit">
+              Подписаться на обновления
+              <span class="btn__arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <label class="checkbox course-teaser__consent">
+            <input type="checkbox" name="consent" required />
+            <span class="checkbox__box"></span>
+            <span class="checkbox__label">
+              Согласен на обработку персональных данных
+            </span>
+          </label>
+
+          <p class="course-teaser__note">
+            Одно письмо, когда курс будет готов. Без спама.
+          </p>
+        </form>
+      </div>
+    </div> -->
+  </div> 
+</section>
+
+
+  <!-- ============================================ -->
+  <!-- 10. ОТЗЫВЫ                                    -->
+  <!-- ============================================ 
+  <section class="testimonials">
+    <h2>Отзывы</h2>
+    <p>Скоро здесь появятся отзывы учеников и клиентов.</p>
+  </section> -->
+
+  <!--============================================ 
+ 11. ПОДПИСКА                                 
+  ============================================ -->
+
+<!-- ============================================ -->
+<!-- ПОДПИСКА                                     -->
+<!-- ============================================ -->
+<section id="subscribe" class="subscribe">
+  <div class="container">
+    <div class="subscribe__box">
+      <span class="label subscribe__label">Подписка</span>
+
+      <h2 class="subscribe__title">
+        Получай разборы и гайды по разработке на почту
+      </h2>
+
+      <p class="subscribe__lead">
+        1 полезное письмо в неделю, без спама. Отписка в один клик.
+      </p>
+
+      <form class="subscribe__form" action="#" method="POST" data-contact-form>
+        <input type="hidden" name="source" value="main-subscribe" />
+        <input type="hidden" name="name" value="Подписка на рассылку" />
+
+        <div class="subscribe__input-row">
+          <input
+            type="email"
+            id="subscribe-email"
+            name="email"
+            class="field__input subscribe__input"
+            placeholder="you@example.com"
+            required
+            aria-label="Email"
+          />
+          <button type="submit" class="btn subscribe__submit">
+            Подписаться
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
+
+        <label class="checkbox subscribe__consent">
+          <input type="checkbox" name="consent" required />
+          <span class="checkbox__box"></span>
+          <span class="checkbox__label">
+            Согласен на обработку персональных данных
+          </span>
+        </label>
+
+        <p class="subscribe__note">
+          Отписаться можно в один клик. Никаких навязчивых писем и продаж.
+        </p>
+      </form>
+    </div>
+  </div>
+</section>
+
+  <MemoryGame />
+  <LabyrinthGame />
+</BaseLayout>

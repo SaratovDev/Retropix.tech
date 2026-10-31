@@ -1,0 +1,267 @@
+/* ============================================
+   PROSE — типографика текстового контента
+   Применяется к <Content /> внутри статьи
+   ============================================ */
+
+.prose {
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--text);
+  max-width: 720px; /* ← для читабельности */
+  margin: 0 auto;
+}
+
+/* Заголовки внутри текста */
+.prose h2 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-top: var(--space-9);
+  margin-bottom: var(--space-5);
+}
+
+.prose h3 {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.5vw, 28px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-4);
+}
+
+.prose h4 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.3;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+
+/* Первый элемент после заголовка — без большого отступа */
+.prose > *:first-child {
+  margin-top: 0;
+}
+
+/* Параграфы */
+.prose p {
+  margin-bottom: var(--space-5);
+  max-width: none; /* снимаем дефолтный 65ch из base.css */
+}
+
+/* Списки */
+.prose ul,
+.prose ol {
+  margin-bottom: var(--space-5);
+  padding-left: var(--space-6);
+}
+
+.prose ul {
+  list-style: none;
+}
+
+.prose ul li {
+  position: relative;
+  padding-left: var(--space-5);
+  margin-bottom: var(--space-2);
+}
+
+.prose ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 12px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.prose ol {
+  list-style: none;
+  counter-reset: prose-ol;
+}
+
+.prose ol li {
+  position: relative;
+  padding-left: var(--space-6);
+  margin-bottom: var(--space-3);
+  counter-increment: prose-ol;
+}
+
+.prose ol li::before {
+  content: counter(prose-ol, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+/* Жирный и курсив */
+.prose strong {
+  font-weight: 700;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+/* Инлайн-код */
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  padding: 2px 6px;
+  color: var(--text);
+}
+
+/* Блоки кода */
+.prose pre {
+  background: #0A0A0A;                /* тёмный фон всегда */
+  border: 1px solid #1A1A1A;
+  padding: var(--space-5);
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #F5F5F3;                     /* ← светлый текст всегда */
+}
+
+/* Когда <pre> внутри .code-block — убираем его собственные рамки */
+.code-block .prose pre,
+.prose .code-block pre {
+  border: none;
+  background: transparent;
+  margin: 0;
+}
+
+.prose pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;                     /* ← наследует светлый цвет */
+}
+
+/* Цитаты */
+.prose blockquote {
+  background: var(--quote-bg);
+  border-left: 3px solid var(--accent);
+  padding: var(--space-5) var(--space-6);
+  margin: var(--space-6) 0;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.prose blockquote p {
+  margin-bottom: 0;
+}
+
+.prose blockquote p + p {
+  margin-top: var(--space-4);
+}
+
+/* Изображения */
+.prose img {
+  width: 100%;
+  height: auto;
+  margin: var(--space-7) 0;
+  border: 1px solid var(--border-soft);
+}
+
+/* Горизонтальная линия */
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--border-soft);
+  margin: var(--space-8) 0;
+}
+
+/* Таблицы */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-6) 0;
+  font-size: 16px;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid var(--border-soft);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+}
+
+.prose th {
+  background: var(--code-bg);
+  font-weight: 700;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+/* Ссылки в тексте — стили уже в base.css, но уточним */
+.prose a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color var(--dur) var(--ease);
+}
+
+.prose a:hover {
+  color: var(--accent);
+}
+
+/* Callout — важный блок с оранжевой полосой */
+.prose .callout {
+  background: var(--callout-bg);
+  border-left: 3px solid var(--callout-border);
+  padding: var(--space-5) var(--space-6);
+  margin: var(--space-6) 0;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.prose .callout p:last-child {
+  margin-bottom: 0;
+}
+
+.prose .callout__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: var(--space-2);
+}
+
+/* Адаптив */
+@media (max-width: 720px) {
+  .prose {
+    font-size: 17px;
+  }
+
+  .prose h2 {
+    margin-top: var(--space-7);
+  }
+
+  .prose pre {
+    font-size: 13px;
+    padding: var(--space-4);
+    margin-left: calc(var(--space-4) * -1);
+    margin-right: calc(var(--space-4) * -1);
+  }
+}
