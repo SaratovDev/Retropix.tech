@@ -272,6 +272,21 @@
     margin-bottom: var(--space-4);
   }
 
+/* Прячем логотип в шапке */
+.site-header__logo {
+  display: none;
+}
+
+/* Прячем десктопную кнопку CTA в шапке */
+.site-header__cta {
+  display: none;
+}
+
+/* Гамбургер прижимаем вправо (на случай если он был в центре) */
+.site-header__burger {
+  display: flex;
+  margin-left: auto;
+}
 
 /* 480px — мобилка */
 @media (max-width: 480px) {
