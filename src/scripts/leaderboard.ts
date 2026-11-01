@@ -41,10 +41,10 @@ const RANKS: Record<GameType, Array<{ max: number; rank: string }>> = {
 };
 
 const SUSPICIOUS_THRESHOLD: Record<GameType, number> = {
-  memory: 15,
-  'labyrinth-4x4': 10,
-  'labyrinth-6x6': 20,
-  'labyrinth-8x8': 45,
+  memory: 10,
+  'labyrinth-4x4': 2,
+  'labyrinth-6x6': 12,
+  'labyrinth-8x8': 20,
 };
 
 // === Ключ localStorage ===

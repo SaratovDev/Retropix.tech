@@ -3,7 +3,7 @@
 
 export const SITE = {
   /** Название сайта (для title, OG, schema) */
-  name: 'Разработка сайтов. Обучение веб-разработке. Вадим Шабанов',
+  name: 'Вадим Шабанов / Retropix.tech',
 
   /** Короткое описание — используется в description по умолчанию и OG */
   description:
@@ -15,32 +15,30 @@ export const SITE = {
   /** Язык сайта (для <html lang> и OG locale) */
   lang: 'ru',
 
-  /** Твой Twitter/X-ник без @, если есть. Иначе оставь пустым. */
+
   twitter: '',
 } as const;
 
-/** Дефолтная OG-картинка (положи файл в public/og-default.jpg) */
+
 export const DEFAULT_OG_IMAGE = '/og-default.jpg';
 
-/** Информация об авторе сайта (для E-E-A-T и schema) */
+
 export const AUTHOR = {
   name: 'Вадим Шабанов',
   url: 'https://retropix.tech/about',
   jobTitle: 'Веб-разработчик и преподаватель',
   knowsAbout: ['Tilda', 'WordPress', 'WooCommerce', 'HTML', 'CSS', 'SEO'],
-  /** Соцсети и внешние профили — усиливают E-E-A-T */
   sameAs: [
     'https://t.me/web_desigm',
     'https://tenchat.ru/vadimshabanov',
   ],
-  /** Контакты для футера */
   contacts: {
     telegram: 'https://t.me/web_desigm',
     tenchat: 'https://tenchat.ru/vadimshabanov',
   },
 } as const;
 
-/** Рубрики блога — жёсткий список. Используются в футере, фильтре, статьях. */
+
 export const CATEGORIES = [
   {
     slug: 'tilda',
@@ -89,18 +87,17 @@ export const CATEGORIES = [
   }
 ] as const;
 
-/** Утилита: получить рубрику по slug */
+/** получить рубрику по slug */
 export function getCategoryBySlug(slug: string) {
   return CATEGORIES.find((cat) => cat.slug === slug);
 }
 
-/** Утилита: получить название рубрики по slug */
+/** получить название рубрики по slug */
 export function getCategoryName(slug: string): string {
   return getCategoryBySlug(slug)?.name ?? slug;
 }
 
-/** Стартовый гид — 3–5 статей-столпов (заполним позже) */
-/** Путь новичка — используется в секции «С чего начать» */
+
 export const START_HERE = [
   {
     number: '01',
@@ -153,7 +150,7 @@ export const START_HERE = [
   },
 ] as const;
 
-/** Ключевая фраза личного бренда — используется в hero и в блоке «Обо мне» */
+
 export const TAGLINE =
   'Показываю бесплатно на своём примере, как я делаю сайты для бизнеса.';
 
