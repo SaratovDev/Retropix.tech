@@ -236,6 +236,43 @@
   }
 }
 
+  /* Уменьшаем верхний/нижний отступ секции Hero */
+  .hero {
+    padding-top: 24px;
+    padding-bottom: var(--space-7);
+  }
+
+  /* Уменьшаем отступы между элементами hero */
+  .hero__label {
+    margin-bottom: var(--space-3);
+  }
+
+  .hero__title {
+    font-size: clamp(28px, 7vw, 44px);
+    min-height: auto; /* Убираем фикс высоту, пусть зависит от текста */
+    margin-bottom: var(--space-4);
+  }
+
+  /* Корректируем отступ подзаголовка */
+  .hero__subtitle {
+    font-size: 16px;
+    margin-bottom: var(--space-5);
+  }
+
+   .for-whom {
+    padding-top: var(--space-7);
+    padding-bottom: var(--space-7);
+  }
+  
+  .for-whom__box {
+    padding: var(--space-5); /* было 24px, сделаем компактнее для мобилки */
+  }
+  
+  .for-whom__label {
+    margin-bottom: var(--space-4);
+  }
+
+
 /* 480px — мобилка */
 @media (max-width: 480px) {
   .hero__actions {
