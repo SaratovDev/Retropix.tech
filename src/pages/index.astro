@@ -14,11 +14,11 @@ import { LEARN_SKILLS, LEARN_COURSE } from '../consts';
 import { CASES } from '../consts';
 
 const heroSlides = [
-  { src: '/images/hero/slide-01.png', alt: 'Лендинг для клиники на Tilda' },
-  { src: '/images/hero/slide-02.png', alt: 'Корпоративный сайт на WordPress' },
-  { src: '/images/hero/slide-03.png', alt: 'Интернет-магазин на WooCommerce' },
-  { src: '/images/hero/slide-04.png', alt: 'Сайт на HTML+CSS с нуля' },
-  { src: '/images/hero/slide-05.png', alt: 'Курс с личным кабинетом' },
+  { src: '/images/hero/slide-01.png', alt: 'Лендинг для клиники на&nbsp;Tilda' },
+  { src: '/images/hero/slide-02.png', alt: 'Корпоративный сайт на&nbsp;WordPress' },
+  { src: '/images/hero/slide-03.png', alt: 'Интернет-магазин на&nbsp;WooCommerce' },
+  { src: '/images/hero/slide-04.png', alt: 'Сайт на HTML+CSS с&nbsp;нуля' },
+  { src: '/images/hero/slide-05.png', alt: 'Курс с&nbsp;личным кабинетом' },
 ];
 
 const allPosts = (await getCollection('blog', ({ data }) => !data.draft))
@@ -69,14 +69,14 @@ const schema = [
   '@type': 'Game',
   name: 'Мемори со скидкой 15%',
   description:
-    'Открывайте парные карточки с эмодзи. Соберите все 8 пар за 3 ошибки или меньше — получите скидку 15% на любую услугу.',
+    'Открывайте парные карточки с&nbsp;эмодзи. Соберите все 8 пар за&nbsp;3 ошибки или меньше — получите скидку 15% на&nbsp;любую услугу.',
   gameLocation: {
     '@type': 'WebPage',
     url: SITE.url,
   },
   offers: {
     '@type': 'Offer',
-    name: 'Скидка 15% на услугу',
+    name: 'Скидка 15% на&nbsp;услугу',
     price: '0',
     priceCurrency: 'RUB',
   },
@@ -85,7 +85,7 @@ const schema = [
   '@context': 'https://schema.org',
   '@type': 'HowTo',
   name: 'Как я работаю: процесс разработки сайта',
-  description: 'Прозрачный процесс разработки сайта — от знакомства до запуска и поддержки.',
+  description: 'Прозрачный процесс разработки сайта — от&nbsp;знакомства до запуска и&nbsp;поддержки.',
   step: WORK_STEPS.map((step, i) => ({
     '@type': 'HowToStep',
     position: i + 1,
@@ -98,7 +98,7 @@ const schema = [
 ---
 
 <BaseLayout
-  title="Создание сайтов на Tilda, WordPress и HTML+CSS — от нуля до запуска"
+  title="Создание сайтов на&nbsp;Tilda, WordPress и&nbsp;HTML+CSS — от нуля до&nbsp;запуска"
   description={SITE.description}
   schema={schema}
 >
@@ -112,7 +112,7 @@ const schema = [
       <span class="label hero__label">Веб-разработка · Обучение</span>
 
       <h1 class="hero__title">
-  Разработка сайтов на
+  Разработка&nbsp;сайтов&nbsp;на
   <span class="hero__title-dynamic">
     <span class="typewriter">
       <span class="typewriter__text" data-typewriter-text>Tilda</span>
@@ -122,8 +122,8 @@ const schema = [
 </h1>
 
       <p class="hero__subtitle">
-        Выполняю полный цикл разработки сайта — от прототипа
-        до финального запуска. От вас только запрос и требования.
+        Выполняю полный цикл разработки сайта — от&nbsp;прототипа
+        до финального запуска. От&nbsp;вас только запрос и&nbsp;требования.
       </p>
 
       <div class="hero__actions">
@@ -159,9 +159,9 @@ const schema = [
               </h2>
 
               <p class="for-whom-card__description">
-                Бесплатные статьи, гайды, разборы. От HTML и Tilda до
-                Astro JS и WordPress — без воды и оплаты. Начни с основ
-                и дойди до первого проекта бесплатно и без напряга.
+                Бесплатные статьи, гайды, разборы. От&nbsp;HTML и&nbsp;Tilda до&nbsp;
+                Astro JS и WordPress — без&nbsp;воды и&nbsp;оплаты. Начни с&nbsp;основ
+                и&nbsp;дойди до&nbsp;первого проекта бесплатно и&nbsp;без&nbsp;напряга.
               </p>
 
               <a href="/blog" class="btn for-whom-card__btn">

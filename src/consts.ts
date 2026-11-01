@@ -7,7 +7,7 @@ export const SITE = {
 
   /** Короткое описание — используется в description по умолчанию и OG */
   description:
-    'Практический блог о создании сайтов: Tilda, WordPress, WooCommerce, HTML+CSS и SEO. Бесплатные разборы, обучение и разработка под заказ.',
+    'Практический блог о&nbsp;создании сайтов: Tilda, WordPress, WooCommerce, HTML+CSS и SEO. Бесплатные разборы, обучение и разработка под заказ.',
 
   /** Реальный URL. ДОЛЖЕН совпадать с `site` в astro.config.mjs */
   url: 'https://retropix.tech',
