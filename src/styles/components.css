@@ -234,7 +234,7 @@
     /* Три строки: "Разработка сайтов" / "на" / "Tilda" */
     min-height: 3.05em;
   }
-}
+
 
   /* Уменьшаем верхний/нижний отступ секции Hero */
   .hero {
@@ -286,7 +286,7 @@
 .site-header__burger {
   display: flex;
   margin-left: auto;
-}
+} }
 
 /* 480px — мобилка */
 @media (max-width: 480px) {
