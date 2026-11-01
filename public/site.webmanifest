@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Retropix.tech. Вадим Шабанов. Разработка сайтов и обучение",
+  "short_name": "Retropix",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
